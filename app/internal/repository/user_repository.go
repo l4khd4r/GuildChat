@@ -29,7 +29,7 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	}
 }
 
-func (r *UserRepository) CreateUser(ctx context.Context, username string , email string passwordHash string  ) (*User , error){
+func (r *UserRepository) CreateUser(ctx context.Context, username string , email string , passwordHash string  ) (*User , error){
 	user := &User{}
 
 	query := `
@@ -49,8 +49,6 @@ func (r *UserRepository) CreateUser(ctx context.Context, username string , email
 		&user.Username,
 		&user.Email,
 		&user.PasswordHash,
-		&user.createdAt,
-		&user.updatedAt,
 	)
 
 

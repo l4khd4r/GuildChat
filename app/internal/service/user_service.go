@@ -28,5 +28,5 @@ func (s *UserService) CreateUser(
 		username,
 		email,
 		passwordHash,
-	), nil
+	)
 }
