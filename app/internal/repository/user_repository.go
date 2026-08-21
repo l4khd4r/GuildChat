@@ -1,15 +1,17 @@
 package repository
 import (
+
 	"context"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/l4khd4r/GuildChat/internal/model"
 )
-type User struct
-{
-	ID int64
-	Username string
-	Email string
-	PasswordHash string
-}
+// type User struct
+// {
+// 	ID int64
+// 	Username string
+// 	Email string
+// 	PasswordHash string
+// }
 // users
 // ├── id
 // ├── username
