@@ -1,0 +1,18 @@
+.env
+
+# Go
+*.exe
+*.test
+*.out
+coverage.*
+
+# Build
+bin/
+dist/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store

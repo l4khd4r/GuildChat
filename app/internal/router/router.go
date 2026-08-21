@@ -2,16 +2,16 @@ package router
 
 
 import "github.com/gin-gonic/gin"
+import "github.com/l4khd4r/GuildChat/internal/handler"
 
 
-
-func New() *gin.Engine {
+func New(userHandler *handler.UserHandler) *gin.Engine {
 	router := gin.Default()
 
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "Welcome to My World!"
+			"message": "Welcome to My World!",
 		})
 	})
 
@@ -20,25 +20,8 @@ func New() *gin.Engine {
 		c.JSON(200, gin.H{
 			"status": "healthy",
 		})
-	}
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	}
-
-
-	router.GET("/hello/:name", func(c *gin.Context) {
-		name := c.Param("name")
-		c.JSON(200, gin.H{
-			"message": "Hello, " + name + "!",
-		})
 	})
+	router.POST("/users", userHandler.CreateUser)
 
-	router.GET("/Forbidden", func(c *gin.Context) {
-		c.JSON(403, gin.H{
-			"message": "Forbidden",
-		})
-	}
 	return  router
 }
