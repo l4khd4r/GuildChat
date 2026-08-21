@@ -16,3 +16,8 @@ dist/
 
 # OS
 .DS_Store
+
+
+docs/
+
+docs/*
