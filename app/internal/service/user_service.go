@@ -36,7 +36,6 @@ func (s *UserService) CreateUser(
 	)
 }
 
-
-func (s *UserService) GetUserByID(ctx context.Context, id int64) (*model.User , error){
-	return s.userRepo.GetByID(ctx , id)
+func (s *UserService) GetUserByID(ctx context.Context, id int64) (*model.User, error) {
+	return s.userRepo.GetByID(ctx, id)
 }

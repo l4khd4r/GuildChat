@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	saltLength = 16
+	saltLength   = 16
 	argonTime    = 1
 	argonMemory  = 64 * 1024
 	argonThreads = 4
@@ -103,6 +103,7 @@ func VerifyPassword(password, encodedHash string) (bool, error) {
 
 	return false, nil
 }
+
 // func VerifyPassword(password, encodedHash string) (bool, error) {
 // 	var memory uint32
 // 	var time uint32

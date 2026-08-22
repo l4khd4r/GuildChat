@@ -11,10 +11,9 @@ import (
 	"github.com/l4khd4r/GuildChat/internal/service"
 )
 
-
 func main() {
 	cfg := config.Load()
-	db , err := database.NewPostgresPool(database.Config{
+	db, err := database.NewPostgresPool(database.Config{
 		Host:     cfg.Database.Host,
 		Port:     cfg.Database.Port,
 		User:     cfg.Database.User,
@@ -34,9 +33,9 @@ func main() {
 	authService := service.NewAuthService(userRepo)
 	authHandler := handler.NewAuthHandler(authService)
 	r := router.New(userHandler, authHandler)
-	log.Println("Server is running on port : " +  cfg.Port)
+	log.Println("Server is running on port : " + cfg.Port)
 
-	if err := r.Run(":" + cfg.Port) ;err != nil {
+	if err := r.Run(":" + cfg.Port); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
 

@@ -5,17 +5,14 @@ import (
 	"github.com/l4khd4r/GuildChat/internal/handler"
 )
 
-
 func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler) *gin.Engine {
 	router := gin.Default()
-
 
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Welcome to My World!",
 		})
 	})
-
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -24,9 +21,8 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler) *gi
 	})
 	router.POST("/users", userHandler.CreateUser)
 
-	router.GET("/users/:id",userHandler.GetUserByID)
-
+	router.GET("/users/:id", userHandler.GetUserByID)
 
 	router.POST("/auth/login", authHandler.Login)
-	return  router
+	return router
 }

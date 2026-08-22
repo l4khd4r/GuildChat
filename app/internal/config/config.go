@@ -7,7 +7,7 @@ import (
 )
 
 type Config struct {
-	Port string
+	Port     string
 	Database DatabaseConfig
 }
 
@@ -20,18 +20,17 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
-
 func Load() Config {
 	_ = godotenv.Load()
-	return Config {
-		Port : os.Getenv("PORT"),
+	return Config{
+		Port: os.Getenv("PORT"),
 		Database: DatabaseConfig{
-			Host: os.Getenv("DB_HOST"),
-			Port: os.Getenv("DB_PORT"),
-			User: os.Getenv("DB_USER"),
+			Host:     os.Getenv("DB_HOST"),
+			Port:     os.Getenv("DB_PORT"),
+			User:     os.Getenv("DB_USER"),
 			Password: os.Getenv("DB_PASSWORD"),
-			Name: os.Getenv("DB_NAME"),
-			SSLMode: os.Getenv("DB_SSLMODE"),
+			Name:     os.Getenv("DB_NAME"),
+			SSLMode:  os.Getenv("DB_SSLMODE"),
 		},
 	}
 }

@@ -11,11 +11,9 @@ import (
 	"github.com/l4khd4r/GuildChat/internal/service"
 )
 
-
 type UserHandler struct {
 	userService *service.UserService
 }
-
 
 func NewUserHandler(userService *service.UserService) *UserHandler {
 	return &UserHandler{
@@ -32,10 +30,10 @@ func validationError(err error) gin.H {
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var req dto.CreateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest , validationError(err))
+		c.JSON(http.StatusBadRequest, validationError(err))
 		return
 	}
-	user , err := h.userService.CreateUser(
+	user, err := h.userService.CreateUser(
 		c.Request.Context(),
 		req.Username,
 		req.Email,
@@ -44,54 +42,52 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	if err != nil {
 		// c.JSON(http.StatusInternalServerError , validationError(err))
 		switch {
-			case errors.Is(err , repository.ErrUsernameAlreadyExists):
-				c.JSON(http.StatusConflict , validationError(err))
-			case errors.Is(err , repository.ErrEmailAlreadyExists):
-				c.JSON(http.StatusConflict , validationError(err))
-			default:
-				c.JSON(http.StatusInternalServerError , validationError(err))
+		case errors.Is(err, repository.ErrUsernameAlreadyExists):
+			c.JSON(http.StatusConflict, validationError(err))
+		case errors.Is(err, repository.ErrEmailAlreadyExists):
+			c.JSON(http.StatusConflict, validationError(err))
+		default:
+			c.JSON(http.StatusInternalServerError, validationError(err))
 		}
 		return
 	}
 
 	respone := dto.UserResponse{
-		ID: user.ID,
-		Username: user.Username,
-		Email: user.Email,
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
 
-	c.JSON(http.StatusCreated , respone)
+	c.JSON(http.StatusCreated, respone)
 }
-
 
 func (h *UserHandler) GetUserByID(c *gin.Context) {
 	idParam := c.Param("id")
 
-
-	id , err := strconv.ParseInt(idParam, 10 , 64)
+	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest , validationError(repository.ErrInvalidUserID))
+		c.JSON(http.StatusBadRequest, validationError(repository.ErrInvalidUserID))
 		return
 	}
 
-	user , err := h.userService.GetUserByID(c.Request.Context() , id,)
-	if  err != nil {
+	user, err := h.userService.GetUserByID(c.Request.Context(), id)
+	if err != nil {
 		switch {
-			case errors.Is(err, repository.ErrUserNotFound):
-				c.JSON(http.StatusNotFound , validationError(err))
-			default:
-				c.JSON(http.StatusInternalServerError , validationError(err))
-			}
-			return
+		case errors.Is(err, repository.ErrUserNotFound):
+			c.JSON(http.StatusNotFound, validationError(err))
+		default:
+			c.JSON(http.StatusInternalServerError, validationError(err))
+		}
+		return
 	}
 	response := dto.UserResponse{
-		ID: user.ID,
-		Username: user.Username,
-		Email: user.Email,
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
-	c.JSON(http.StatusOK , response)
+	c.JSON(http.StatusOK, response)
 }

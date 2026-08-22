@@ -33,7 +33,7 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	}
 }
 
-func (r *UserRepository) CreateUser(ctx context.Context, username string , email string , passwordHash string  ) (*model.User , error){
+func (r *UserRepository) CreateUser(ctx context.Context, username string, email string, passwordHash string) (*model.User, error) {
 	user := &model.User{}
 
 	query := `
@@ -56,26 +56,24 @@ func (r *UserRepository) CreateUser(ctx context.Context, username string , email
 		&user.UpdatedAt,
 	)
 
-
 	if err != nil {
 		var pgErr *pgconn.PgError
 
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			switch pgErr.ConstraintName {
 			case "users_username_key":
-				return nil , errors.New("username already exists")
+				return nil, errors.New("username already exists")
 
 			case "users_email_key":
-				return nil , errors.New("email already exists")
+				return nil, errors.New("email already exists")
 			}
 		}
-		return nil , err
+		return nil, err
 	}
-	return user , nil
+	return user, nil
 }
 
-
-func (r *UserRepository) GetByID(ctx context.Context , id int64) (*model.User , error){
+func (r *UserRepository) GetByID(ctx context.Context, id int64) (*model.User, error) {
 	user := &model.User{}
 	query := `
 		SELECT id , username , email , password_hash , created_at , updated_at
@@ -95,15 +93,15 @@ func (r *UserRepository) GetByID(ctx context.Context , id int64) (*model.User , 
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		if errors.Is(err , pgx.ErrNoRows) {
-			return nil , ErrUserNotFound
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrUserNotFound
 		}
 		return nil, err
 	}
 	return user, nil
 }
 
-func (r *UserRepository) GetByEmail(ctx context.Context , email string) (*model.User , error){
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.User, error) {
 	user := &model.User{}
 	query := `
 		SELECT id , username , email , password_hash , created_at , updated_at
@@ -123,8 +121,8 @@ func (r *UserRepository) GetByEmail(ctx context.Context , email string) (*model.
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		if errors.Is(err , pgx.ErrNoRows) {
-			return nil , ErrUserNotFound
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrUserNotFound
 		}
 		return nil, err
 	}

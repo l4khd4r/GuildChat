@@ -8,19 +8,17 @@ import (
 	"os"
 )
 
-
 func LoadPrivateKey(path string) (*rsa.PrivateKey, error) {
 
-	data , err := os.ReadFile(path)
-	if err != nil{
-		return nil ,fmt.Errorf("read private key file: %w", err)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("read private key file: %w", err)
 	}
 
-
-	block , _ := pem.Decode(data)
+	block, _ := pem.Decode(data)
 
 	if block == nil {
-		return nil  , fmt.Errorf("invalid private key PEM")
+		return nil, fmt.Errorf("invalid private key PEM")
 	}
 	keyAny, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
