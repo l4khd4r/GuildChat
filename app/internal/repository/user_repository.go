@@ -2,7 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/l4khd4r/GuildChat/internal/model"
 )
@@ -38,7 +41,6 @@ func (r *UserRepository) CreateUser(ctx context.Context, username string , email
 		VALUES ($1 , $2 , $3)
 		RETURNING id , username , email , password_hash , created_at , updated_at
 		`
-
 	err := r.db.QueryRow(
 		ctx,
 		query,
@@ -56,7 +58,47 @@ func (r *UserRepository) CreateUser(ctx context.Context, username string , email
 
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			switch pgErr.ConstraintName {
+			case "users_username_key":
+				return nil , errors.New("username already exists")
+
+			case "users_email_key":
+				return nil , errors.New("email already exists")
+			}
+		}
 		return nil , err
 	}
 	return user , nil
+}
+
+
+func (r *UserRepository) GetByID(ctx context.Context , id int64) (*model.User , error){
+	user := &model.User{}
+	query := `
+		SELECT id , username , email , password_hash , created_at , updated_at
+		FROM users
+		WHERE id = $1
+		`
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		id,
+	).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.PassowrdHash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err , pgx.ErrNoRows) {
+			return nil , ErrUserNotFound
+		}
+		return nil, err
+	}
+	return user, nil
 }

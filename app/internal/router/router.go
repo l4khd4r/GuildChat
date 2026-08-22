@@ -1,8 +1,9 @@
 package router
 
-
-import "github.com/gin-gonic/gin"
-import "github.com/l4khd4r/GuildChat/internal/handler"
+import (
+	"github.com/gin-gonic/gin"
+	"github.com/l4khd4r/GuildChat/internal/handler"
+)
 
 
 func New(userHandler *handler.UserHandler) *gin.Engine {
@@ -23,5 +24,6 @@ func New(userHandler *handler.UserHandler) *gin.Engine {
 	})
 	router.POST("/users", userHandler.CreateUser)
 
+	router.GET("/users/:id",userHandler.GetUserByID)
 	return  router
 }

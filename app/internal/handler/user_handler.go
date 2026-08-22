@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/l4khd4r/GuildChat/internal/dto"
+	"github.com/l4khd4r/GuildChat/internal/repository"
 	"github.com/l4khd4r/GuildChat/internal/service"
 )
 
@@ -39,7 +42,15 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		req.Password,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError , validationError(err))
+		// c.JSON(http.StatusInternalServerError , validationError(err))
+		switch {
+			case errors.Is(err , repository.ErrUsernameAlreadyExists):
+				c.JSON(http.StatusConflict , validationError(err))
+			case errors.Is(err , repository.ErrEmailAlreadyExists):
+				c.JSON(http.StatusConflict , validationError(err))
+			default:
+				c.JSON(http.StatusInternalServerError , validationError(err))
+		}
 		return
 	}
 
@@ -52,4 +63,35 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated , respone)
+}
+
+
+func (h *UserHandler) GetUserByID(c *gin.Context) {
+	idParam := c.Param("id")
+
+
+	id , err := strconv.ParseInt(idParam, 10 , 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest , validationError(repository.ErrInvalidUserID))
+		return
+	}
+
+	user , err := h.userService.GetUserByID(c.Request.Context() , id,)
+	if  err != nil {
+		switch {
+			case errors.Is(err, repository.ErrUserNotFound):
+				c.JSON(http.StatusNotFound , validationError(err))
+			default:
+				c.JSON(http.StatusInternalServerError , validationError(err))
+			}
+			return
+	}
+	response := dto.UserResponse{
+		ID: user.ID,
+		Username: user.Username,
+		Email: user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+	c.JSON(http.StatusOK , response)
 }
