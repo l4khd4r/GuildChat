@@ -1,0 +1,26 @@
+$kind: http-request
+name: Health Check
+method: GET
+url: '{{baseUrl}}/health'
+order: 2000
+description: Health check endpoint. Returns the service status.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Content-Type is application/json', function () {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');
+      });
+
+      pm.test("Response body reports status 'healthy'", function () {
+          const body = pm.response.json();
+          pm.expect(body).to.have.property('status', 'healthy');
+      });
+
+      pm.test('Response time is below 500ms', function () {
+          pm.expect(pm.response.responseTime).to.be.below(500);
+      });

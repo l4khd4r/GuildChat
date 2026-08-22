@@ -1,0 +1,13 @@
+$kind: collection
+name: GuildChat API
+description: |-
+  API collection for the GuildChat service (Go + Gin).
+
+  Endpoints are derived from the implementation in `internal/router/router.go`.
+  The server port is configured via the `PORT` environment variable; adjust the
+  `baseUrl` collection variable to match your running instance.
+variables:
+  - key: baseUrl
+    value: 'http://localhost:8080'
+auth:
+  type: noauth

@@ -13,7 +13,6 @@ import (
 
 const (
 	saltLength = 16
-
 	argonTime    = 1
 	argonMemory  = 64 * 1024
 	argonThreads = 4
@@ -26,7 +25,6 @@ func HashPassword(password string) (string, error) {
 	if _, err := rand.Read(salt); err != nil {
 		return "", err
 	}
-
 	hash := argon2.IDKey(
 		[]byte(password),
 		salt,
@@ -48,6 +46,7 @@ func HashPassword(password string) (string, error) {
 		encodedHash,
 	), nil
 }
+
 func VerifyPassword(password, encodedHash string) (bool, error) {
 	parts := strings.Split(encodedHash, "$")
 
