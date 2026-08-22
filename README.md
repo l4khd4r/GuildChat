@@ -17,3 +17,25 @@ That's the structure I'd recommend for GuildChat.
                      ↓
                  PostgreSQL
 ```
+have successfully reached this flow
+```
+POST /users
+    ↓
+JSON → CreateUserRequest
+    ↓
+Gin binding + validation
+    ↓
+UserService
+    ↓
+HashPassword()
+    ↓
+UserRepository
+    ↓
+PostgreSQL
+    ↓
+model.User
+    ↓
+UserResponse
+    ↓
+JSON response
+```
