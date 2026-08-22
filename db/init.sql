@@ -1,0 +1,12 @@
+-- Runs automatically on first startup of an empty postgres volume
+-- (mounted into /docker-entrypoint-initdb.d).
+-- To re-run it: docker compose down -v && docker compose up -d
+
+CREATE TABLE IF NOT EXISTS users (
+    id            BIGSERIAL PRIMARY KEY,
+    username      VARCHAR(50)  NOT NULL UNIQUE,
+    email         VARCHAR(255) NOT NULL UNIQUE,
+    password_hash TEXT         NOT NULL,
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);

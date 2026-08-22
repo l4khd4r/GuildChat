@@ -1,17 +1,40 @@
 services:
   postgres:
-    image: postgres:13
+    image: postgres:17-alpine
     container_name: guildchat-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: guildchat
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d guildchat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
-
+  backend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: guildchat-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./app/.env
+    environment:
+      # overrides .env: inside the compose network the DB is reachable
+      # by its service name, not localhost
+      DB_HOST: postgres
+    restart: unless-stopped
 
 volumes:
   postgres_data:

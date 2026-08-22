@@ -1,0 +1,66 @@
+name: CI
+
+# When to run this pipeline.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # ---- Job 1: the Go checks ----
+  test:
+    name: Build & test
+    runs-on: ubuntu-latest        # a fresh VM, thrown away when the job ends
+
+    defaults:
+      run:
+        working-directory: app    # our Go module lives in app/, not the repo root
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4   # `uses` = a prebuilt action someone else wrote
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: app/go.mod   # read the version from go.mod, don't hardcode
+          cache-dependency-path: app/go.sum
+
+      - name: Download dependencies
+        run: go mod download            # `run` = a shell command, same as your terminal
+
+      - name: Verify go.mod is tidy
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Check formatting
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "These files need gofmt:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test -race ./...        # -race catches data races, worth it in CI
+
+  # ---- Job 2: make sure the Docker image still builds ----
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./app
+          push: false               # just prove it builds; nothing is published
