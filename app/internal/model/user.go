@@ -8,7 +8,7 @@ type User struct {
 	ID int64
 	Username string
 	Email string
-	PassowrdHash string
+	PasswordHash string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

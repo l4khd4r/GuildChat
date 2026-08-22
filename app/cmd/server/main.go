@@ -1,16 +1,14 @@
 package main
 
-
-
-
 import (
 	"log"
+
 	"github.com/l4khd4r/GuildChat/internal/config"
-	"github.com/l4khd4r/GuildChat/internal/router"
 	"github.com/l4khd4r/GuildChat/internal/database"
-	"github.com/l4khd4r/GuildChat/internal/repository"
-	"github.com/l4khd4r/GuildChat/internal/service"
 	"github.com/l4khd4r/GuildChat/internal/handler"
+	"github.com/l4khd4r/GuildChat/internal/repository"
+	"github.com/l4khd4r/GuildChat/internal/router"
+	"github.com/l4khd4r/GuildChat/internal/service"
 )
 
 
@@ -33,7 +31,9 @@ func main() {
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
-	r := router.New(userHandler)
+	authService := service.NewAuthService(userRepo)
+	authHandler := handler.NewAuthHandler(authService)
+	r := router.New(userHandler, authHandler)
 	log.Println("Server is running on port : " +  cfg.Port)
 
 	if err := r.Run(":" + cfg.Port) ;err != nil {

@@ -6,7 +6,7 @@ import (
 )
 
 
-func New(userHandler *handler.UserHandler) *gin.Engine {
+func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler) *gin.Engine {
 	router := gin.Default()
 
 
@@ -25,5 +25,8 @@ func New(userHandler *handler.UserHandler) *gin.Engine {
 	router.POST("/users", userHandler.CreateUser)
 
 	router.GET("/users/:id",userHandler.GetUserByID)
+
+
+	router.POST("/auth/login", authHandler.Login)
 	return  router
 }

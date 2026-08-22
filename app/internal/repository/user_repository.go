@@ -51,7 +51,7 @@ func (r *UserRepository) CreateUser(ctx context.Context, username string , email
 		&user.ID,
 		&user.Username,
 		&user.Email,
-		&user.PassowrdHash,
+		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
@@ -90,7 +90,35 @@ func (r *UserRepository) GetByID(ctx context.Context , id int64) (*model.User , 
 		&user.ID,
 		&user.Username,
 		&user.Email,
-		&user.PassowrdHash,
+		&user.PasswordHash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err , pgx.ErrNoRows) {
+			return nil , ErrUserNotFound
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
+func (r *UserRepository) GetByEmail(ctx context.Context , email string) (*model.User , error){
+	user := &model.User{}
+	query := `
+		SELECT id , username , email , password_hash , created_at , updated_at
+		FROM users
+		WHERE email = $1
+		`
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		email,
+	).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.PasswordHash,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)
