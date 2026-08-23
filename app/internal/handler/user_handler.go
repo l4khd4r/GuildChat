@@ -91,3 +91,42 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 }
+
+
+func (h *UserHandler) GetMe(c *gin.Context) {
+	value , exists  := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+		return
+	}
+
+	userID , ok := value.(int64)
+
+
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID type"})
+		return
+	}
+
+
+	user , err := h.userService.GetUserByID(c.Request.Context() , userID)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+	}
+
+
+	response := dto.UserResponse{
+		ID: 	  user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+
+
+	c.JSON(http.StatusOK, response)
+}

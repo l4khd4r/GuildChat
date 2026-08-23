@@ -23,6 +23,7 @@ func main() {
 		Name:     cfg.Database.Name,
 		SSLMode:  cfg.Database.SSLMode,
 	})
+
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
@@ -46,7 +47,7 @@ func main() {
 
 	authService := service.NewAuthService(userRepo, jwtManager)
 	authHandler := handler.NewAuthHandler(authService)
-	r := router.New(userHandler, authHandler)
+	r := router.New(userHandler, authHandler, jwtManager)
 	log.Println("Server is running on port : " + cfg.Port)
 
 	if err := r.Run(":" + cfg.Port); err != nil {

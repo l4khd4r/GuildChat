@@ -72,6 +72,7 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
 
             return m.publicKey, nil
         },
+		jwt.WithIssuer(m.issuer),
     )
 
     if err != nil {
@@ -82,5 +83,9 @@ func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
         return nil, fmt.Errorf("invalid token")
     }
 
+	claims , ok := token.Claims.(*Claims)
+	if !ok {
+		return nil , fmt.Errorf("invalid token claims")
+	}
     return claims, nil
 }
