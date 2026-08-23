@@ -21,6 +21,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+
 func NewJWTManager(privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey, issuer string, ttl time.Duration) *JWTManager {
 	return &JWTManager{
 		privateKey: privateKey,
@@ -45,39 +46,41 @@ func (manager *JWTManager) GenerateToken(userID int64) (string, error) {
 			ExpiresAt: jwt.NewNumericDate(now.Add(manager.ttl)),
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims) // Use RS256 signing method
+
 	signedToken, err := token.SignedString(manager.privateKey)
 	if err != nil {
 		return "", err
 	}
-
 	return signedToken, nil
 }
 
 func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
-	token, err := jwt.Parse(
-		tokenString,
-		func(token *jwt.Token) (interface{}, error) {
-			if token.Method != jwt.SigningMethodRS256 {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
+    claims := &Claims{}
 
-			return m.publicKey, nil
-		},
-	)
+    token, err := jwt.ParseWithClaims(
+        tokenString,
+        claims,
+        func(token *jwt.Token) (interface{}, error) {
+            if token.Method != jwt.SigningMethodRS256 {
+                return nil, fmt.Errorf(
+                    "unexpected signing method: %v",
+                    token.Header["alg"],
+                )
+            }
 
-	if err != nil {
-		return nil, err
-	}
+            return m.publicKey, nil
+        },
+    )
 
-	if !token.Valid {
-		return nil, fmt.Errorf("invalid token")
-	}
+    if err != nil {
+        return nil, err
+    }
 
-	claims, ok := token.Claims.(*Claims)
-	if !ok {
-		return nil, fmt.Errorf("invalid claims")
-	}
+    if !token.Valid {
+        return nil, fmt.Errorf("invalid token")
+    }
 
-	return claims, nil
+    return claims, nil
 }

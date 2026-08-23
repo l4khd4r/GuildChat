@@ -9,6 +9,12 @@ import (
 type Config struct {
 	Port     string
 	Database DatabaseConfig
+	JWT      JWTConfig
+}
+
+type JWTConfig struct {
+	PrivateKeyPath string
+	PublicKeyPath  string
 }
 
 type DatabaseConfig struct {
@@ -32,5 +38,16 @@ func Load() Config {
 			Name:     os.Getenv("DB_NAME"),
 			SSLMode:  os.Getenv("DB_SSLMODE"),
 		},
+		JWT: JWTConfig{
+			PrivateKeyPath: getenv("JWT_PRIVATE_KEY_PATH", "../keys/private.pem"),
+			PublicKeyPath:  getenv("JWT_PUBLIC_KEY_PATH", "../keys/public.pem"),
+		},
 	}
+}
+
+func getenv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
 }

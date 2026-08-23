@@ -2,7 +2,9 @@ package main
 
 import (
 	"log"
+	"time"
 
+	"github.com/l4khd4r/GuildChat/internal/auth"
 	"github.com/l4khd4r/GuildChat/internal/config"
 	"github.com/l4khd4r/GuildChat/internal/database"
 	"github.com/l4khd4r/GuildChat/internal/handler"
@@ -26,11 +28,23 @@ func main() {
 	}
 	defer db.Close()
 
+	privateKey, err := auth.LoadPrivateKey(cfg.JWT.PrivateKeyPath)
+	if err != nil {
+		log.Fatalf("failed to load private key: %v", err)
+	}
+	publicKey, err := auth.LoadPublicKey(cfg.JWT.PublicKeyPath)
+	if err != nil {
+		log.Fatalf("failed to load public key: %v", err)
+	}
+
+	jwtManager := auth.NewJWTManager(privateKey, publicKey, "GuildChat", 24*time.Hour)
+
 	log.Println("Postgres connection established")
 	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
-	authService := service.NewAuthService(userRepo)
+
+	authService := service.NewAuthService(userRepo, jwtManager)
 	authHandler := handler.NewAuthHandler(authService)
 	r := router.New(userHandler, authHandler)
 	log.Println("Server is running on port : " + cfg.Port)

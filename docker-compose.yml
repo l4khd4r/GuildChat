@@ -23,6 +23,9 @@ services:
       context: ./app
       dockerfile: Dockerfile
     container_name: guildchat-backend
+    # the mounted keys/ is owned by the host user; run as that same uid so
+    # private.pem stays 0600 instead of being opened up to `other`
+    user: "${UID:-1000}:${GID:-1000}"
     ports:
       - "8080:8080"
     depends_on:
@@ -34,6 +37,11 @@ services:
       # overrides .env: inside the compose network the DB is reachable
       # by its service name, not localhost
       DB_HOST: postgres
+      # keys/ lives outside the build context, so it is mounted at runtime
+      JWT_PRIVATE_KEY_PATH: /app/keys/private.pem
+      JWT_PUBLIC_KEY_PATH: /app/keys/public.pem
+    volumes:
+      - ./keys:/app/keys:ro
     restart: unless-stopped
 
 volumes:

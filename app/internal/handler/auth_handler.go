@@ -33,7 +33,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authService.Login(c.Request.Context(), req.Email, req.Password)
+	user, token , err := h.authService.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
 
 		switch {
@@ -46,9 +46,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":       user.ID,
-		"username": user.Username,
-		"email":    user.Email,
+		"token":    token,
+		"user" : gin.H{
+			"id":       user.ID,
+			"username": user.Username,
+			"email":    user.Email,
+		},
 	})
-
 }
