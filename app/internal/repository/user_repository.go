@@ -128,3 +128,58 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.U
 	}
 	return user, nil
 }
+
+
+func (r *UserRepository) Update(ctx context.Context , id int64 , username string, email string  ) ( *model.User, error ) {
+	user := &model.User{}
+
+	query := `
+		UPDATE users
+		SET username = $1,
+			email = $2,
+			updated_at = NOW()
+		WHERE id = $3
+		RETURNING id , username , email , password_hash , created_at , updated_at
+		`
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		username,
+		email,
+		id,
+	).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.PasswordHash,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
+
+func (r *UserRepository) Delete(ctx context.Context, id int64) error {
+	query := `
+		DELETE FROM users
+		WHERE id = $1
+		`
+	cmdTag, err := r.db.Exec(
+		ctx,
+		query,
+		id,
+	)
+	if err != nil {
+		return err
+	}
+	if cmdTag.RowsAffected() == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}

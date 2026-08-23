@@ -328,3 +328,28 @@ prismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/auth/logi
                                         "password": "mohamedlakhdar"
                                       }'
 {"token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc3MiOiJHdWlsZENoYXQiLCJzdWIiOiIxIiwiZXhwIjoxNzg3NTM2Njc1LCJpYXQiOjE3ODc0NTAyNzV9.qDCNkEIKe0svoHCED_SReDKpKNm3A7OAonDI9Ve1P1avjSL-goOg0gb6V6RX7vavVvJv31mOCv2PnbLblEoS7GYbL-xvvR3se8Rd2BxKzABTQpwE7IiMfuFt5JdsPUSfMkMIvroO9Fks4lNNddRqDKuDm88EvnOz2CAhfU0WqgsgZHHHhuP5qyMfAA0OJfyYjV1t_Er01p32I1K8mqX_fDrL4J2Lrs-Afl9GZ82zb6GDU_c-QyOVdxS_rk6Sn6mfqzLfbOqINNTaHXskcGH0oedEz04mSO5m6C0WJZS6VXXb9uWkAfT-P_ItZfbe4HIOA9C4udAK-gef2iEnuZb2SN7JuqYgSvl95vG--K6c016JByYvlvlct6SgC5dGU1yJ7p-KIHPYaPoSFg71Y857Qbbet_YN489cZxn4_wrzCSZ1UgLK6T6jSL6-A4sqGCEjKFKDx_V-Tp6_HfCWWsWUTZV6MxUPuZnGgW1WuySGWIXTM97tEO_xpUaDCpI5DycgRM2K5W_wu7YCDdvXaZxG9vvHizUtgKrRi-eyt98t73YYOsW0d2JUNh_i8pX95pGY1cmHLC-h9IOmzdf4Mzbx_X89S_Zg67qA3W19m7LO1S7TOVUv41JvWE1T-2Jn66VoPlYfZez7r4JzLi8G4M9BELEQ2bUHV4vMqcc974xx3rA","user":{"email":"lakhdar@gmail.com","id":1,"username":"mohamedlakhda"}}⏎
+
+```
+
+
+
+
+delete and put done
+```
+prismo@fedora ~/D/GuildChat (main)>
+prismo@fedora ~/D/GuildChat (main)> curl http://localhost:8080/me \
+                                          -H "Authorization: Bearer $TOKEN"
+{"id":1,"username":"mohamedlakhda","email":"lakhdar@gmail.com","created_at":"2026-08-23T01:56:25.657633Z","updated_at":"2026-08-23T01:56:25.657633Z"}⏎
+prismo@fedora ~/D/GuildChat (main)> curl -X PUT  http://localhost:8080/me \
+                                          -H "Authorization: Bearer $TOKEN" -d '{"username":"ana mohamed"}'
+{"id":1,"username":"ana mohamed","email":"","created_at":"2026-08-23T01:56:25.657633Z","updated_at":"2026-08-23T04:07:42.956584Z"}⏎
+prismo@fedora ~/D/GuildChat (main)> curl -x DELETE http://localhost:8080/me
+curl: (5) Could not resolve proxy: DELETE
+prismo@fedora ~/D/GuildChat (main)> curl -X DELETE http://localhost:8080/me
+{"error":"Authorization header is missing"}⏎
+prismo@fedora ~/D/GuildChat (main)> curl -X DELETE http://localhost:8080/me -H "Authorization: Bearer $TOKEN"
+prismo@fedora ~/D/GuildChat (main)> curl -X PUT  http://localhost:8080/me \
+                                          -H "Authorization: Bearer $TOKEN" -d '{"username":"ana mohamed"}'
+{"error":"user not found"}⏎
+prismo@fedora ~/D/GuildChat (main)>
+```

@@ -39,3 +39,12 @@ func (s *UserService) CreateUser(
 func (s *UserService) GetUserByID(ctx context.Context, id int64) (*model.User, error) {
 	return s.userRepo.GetByID(ctx, id)
 }
+
+
+func (s *UserService) UpdateUser(ctx  context.Context , id int64 , username string , email string ) (*model.User , error){
+	return s.userRepo.Update(ctx , id , username , email)
+}
+
+func (s *UserService) DeleteUser(ctx context.Context, id int64) error {
+	return s.userRepo.Delete(ctx, id)
+}

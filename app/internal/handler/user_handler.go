@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/l4khd4r/GuildChat/internal/auth"
 	"github.com/l4khd4r/GuildChat/internal/dto"
 	"github.com/l4khd4r/GuildChat/internal/repository"
 	"github.com/l4khd4r/GuildChat/internal/service"
@@ -94,21 +95,11 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 
 
 func (h *UserHandler) GetMe(c *gin.Context) {
-	value , exists  := c.Get("user_id")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
-		return
-	}
-
-	userID , ok := value.(int64)
-
-
+	userID, ok := auth.GetUserID(c)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID type"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-
-
 	user , err := h.userService.GetUserByID(c.Request.Context() , userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
@@ -117,8 +108,6 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
 	}
-
-
 	response := dto.UserResponse{
 		ID: 	  user.ID,
 		Username: user.Username,
@@ -126,7 +115,71 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
-
-
 	c.JSON(http.StatusOK, response)
+}
+
+
+func (h *UserHandler) UpdateUser(c *gin.Context) {
+	var req dto.UpdateUserRequest
+
+	if err := c.ShouldBindJSON(&req) ; err != nil {
+		c.JSON(http.StatusBadRequest , validationError(err))
+		return
+	}
+
+	userID, ok := auth.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	user, err := h.userService.UpdateUser(c.Request.Context(), userID, req.Username, req.Email)
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrUserNotFound):
+			c.JSON(http.StatusNotFound, validationError(err))
+		default:
+			c.JSON(http.StatusInternalServerError, validationError(err))
+		}
+		return
+	}
+
+	response := dto.UserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+	c.JSON(http.StatusOK, response)
+}
+
+
+func (h *UserHandler) DeleteMe(c *gin.Context) {
+	userID, ok := auth.GetUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "unauthorized",
+		})
+		return
+	}
+
+	err := h.userService.DeleteUser(
+		c.Request.Context(),
+		userID,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrUserNotFound):
+			c.JSON(http.StatusNotFound, validationError(err))
+
+		default:
+			c.JSON(http.StatusInternalServerError, validationError(err))
+		}
+
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }

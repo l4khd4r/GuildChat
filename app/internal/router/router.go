@@ -9,16 +9,11 @@ import (
 func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, jwtManager *auth.JWTManager) *gin.Engine {
 	router := gin.Default()
 
-
-
-
-
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Welcome to My World!",
 		})
 	})
-
 
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -26,7 +21,6 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, jwt
 		})
 	})
 	router.POST("/users", userHandler.CreateUser)
-
 	router.GET("/users/:id", userHandler.GetUserByID)
 
 	router.POST("/auth/login", authHandler.Login)
@@ -37,6 +31,8 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, jwt
 	protected.Use(jwtManager.Middleware())
 
 	protected.GET("/me" , userHandler.GetMe)
+	protected.PUT("/me", userHandler.UpdateUser)
+	protected.DELETE("/me", userHandler.DeleteMe)
 
 	return router
 }
