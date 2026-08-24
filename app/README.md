@@ -293,6 +293,7 @@ Claims
   ▼
 UserID
 ```
+```
 guildchat=# exit
 prismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/users \
                                           -H "Content-Type: application/json" \
