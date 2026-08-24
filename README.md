@@ -127,3 +127,8 @@ clean architecture :
                        PostgreSQL
 
 ```
+
+***
+
+Schema changes go through migrations — see [docs/MIGRATIONS.md](docs/MIGRATIONS.md)
+for the concepts, a walkthrough of the code, and the commands.

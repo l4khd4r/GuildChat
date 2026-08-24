@@ -57,20 +57,28 @@ func (r *UserRepository) CreateUser(ctx context.Context, username string, email 
 	)
 
 	if err != nil {
-		var pgErr *pgconn.PgError
-
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
-			switch pgErr.ConstraintName {
-			case "users_username_key":
-				return nil, errors.New("username already exists")
-
-			case "users_email_key":
-				return nil, errors.New("email already exists")
-			}
-		}
-		return nil, err
+		return nil, mapError(err)
 	}
 	return user, nil
+}
+
+// mapError turns pgx errors into the package's sentinels so that callers can
+// match them with errors.Is.
+func mapError(err error) error {
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ErrUserNotFound
+	}
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		switch pgErr.ConstraintName {
+		case "users_username_key":
+			return ErrUsernameAlreadyExists
+		case "users_email_key":
+			return ErrEmailAlreadyExists
+		}
+	}
+	return err
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id int64) (*model.User, error) {
@@ -156,10 +164,7 @@ func (r *UserRepository) Update(ctx context.Context , id int64 , username string
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrUserNotFound
-		}
-		return nil, err
+		return nil, mapError(err)
 	}
 	return user, nil
 }

@@ -1,7 +1,6 @@
--- Runs automatically on first startup of an empty postgres volume
--- (mounted into /docker-entrypoint-initdb.d).
--- To re-run it: docker compose down -v && docker compose up -d
-
+-- Baseline schema. Uses IF NOT EXISTS so that databases already created by
+-- the old db/init.sql adopt this migration cleanly instead of failing on a
+-- table that is already there.
 CREATE TABLE IF NOT EXISTS users (
     id            BIGSERIAL PRIMARY KEY,
     username      VARCHAR(50)  NOT NULL UNIQUE,

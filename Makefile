@@ -5,7 +5,8 @@ DC      := docker compose
 APP_DIR := app
 
 .DEFAULT_GOAL := help
-.PHONY: help up down restart build rebuild logs logs-db ps sh psql reset seed test vet fmt tidy run health
+.PHONY: help up down restart build rebuild logs logs-db ps sh psql reset seed test vet fmt tidy run health \
+        migrate-up migrate-down migrate-version migrate-force migrate-new
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -46,9 +47,30 @@ psql: ## Open a psql prompt on the database
 
 ## ---------- database ----------
 
-reset: ## DESTROY the database volume and re-run db/init.sql
+reset: ## DESTROY the database volume and re-migrate from scratch
 	$(DC) down -v
 	$(DC) up -d
+
+migrate-up: ## Apply pending migrations (the server also does this on boot)
+	cd $(APP_DIR) && go run ./cmd/migrate up
+
+migrate-down: ## Roll back migrations: make migrate-down N=1 (omit N for all)
+	cd $(APP_DIR) && go run ./cmd/migrate down $(N)
+
+migrate-version: ## Show the current schema version
+	cd $(APP_DIR) && go run ./cmd/migrate version
+
+migrate-force: ## Clear a dirty schema at a version: make migrate-force V=1
+	@test -n "$(V)" || { echo "usage: make migrate-force V=<version>"; exit 1; }
+	cd $(APP_DIR) && go run ./cmd/migrate force $(V)
+
+migrate-new: ## Create an empty migration pair: make migrate-new NAME=add_guilds
+	@test -n "$(NAME)" || { echo "usage: make migrate-new NAME=<name>"; exit 1; }
+	@dir=$(APP_DIR)/internal/database/migrations; \
+	next=$$(ls $$dir | sed -n 's/^\([0-9]\{6\}\)_.*/\1/p' | sort -n | tail -1); \
+	next=$$(printf '%06d' $$((10#$${next:-0} + 1))); \
+	touch $$dir/$${next}_$(NAME).up.sql $$dir/$${next}_$(NAME).down.sql; \
+	echo "created $$dir/$${next}_$(NAME).{up,down}.sql"
 
 ## ---------- go (runs on the host) ----------
 

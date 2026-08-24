@@ -15,15 +15,23 @@ import (
 
 func main() {
 	cfg := config.Load()
-	db, err := database.NewPostgresPool(database.Config{
+	dbCfg := database.Config{
 		Host:     cfg.Database.Host,
 		Port:     cfg.Database.Port,
 		User:     cfg.Database.User,
 		Password: cfg.Database.Password,
 		Name:     cfg.Database.Name,
 		SSLMode:  cfg.Database.SSLMode,
-	})
+	}
 
+	// Bring the schema up to date before serving, so the app never talks to a
+	// database it does not match.
+	if err := database.MigrateUp(dbCfg); err != nil {
+		log.Fatalf("failed to run migrations: %v", err)
+	}
+	log.Println("Database schema is up to date")
+
+	db, err := database.NewPostgresPool(dbCfg)
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}

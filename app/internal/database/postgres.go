@@ -17,8 +17,18 @@ type Config struct {
 	SSLMode  string
 }
 
+// dsnBody is the DSN without its scheme, so that callers needing a different
+// one (the migrate driver wants pgx5://) can prefix their own.
+func (c Config) dsnBody() string {
+	return fmt.Sprintf("%s:%s@%s:%s/%s?sslmode=%s", c.User, c.Password, c.Host, c.Port, c.Name, c.SSLMode)
+}
+
+func (c Config) DSN() string {
+	return "postgres://" + c.dsnBody()
+}
+
 func NewPostgresPool(cfg Config) (*pgxpool.Pool, error) {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Name, cfg.SSLMode)
+	dsn := cfg.DSN()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

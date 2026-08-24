@@ -35,6 +35,7 @@ func (s *AuthService) Login(ctx context.Context, email string,
 		if errors.Is(err, repository.ErrUserNotFound) {
 			return nil,"",ErrInvalidCredentials
 		}
+		return nil,"",err
 	}
 	valid, err := crypto.VerifyPassword(password, user.PasswordHash)
 	if !valid || err != nil {

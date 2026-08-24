@@ -40,7 +40,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		case errors.Is(err, service.ErrInvalidCredentials):
 			c.JSON(http.StatusUnauthorized, ValidationError(err))
 		default:
-			c.JSON(http.StatusInternalServerError, ValidationError(err))
+			// don't echo the raw error: it can carry the DSN and other internals
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "login failed"})
 		}
 		return
 	}

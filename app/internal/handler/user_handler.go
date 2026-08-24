@@ -107,6 +107,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 			return
 		}
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user"})
+		return
 	}
 	response := dto.UserResponse{
 		ID: 	  user.ID,
@@ -138,6 +139,9 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		switch {
 		case errors.Is(err, repository.ErrUserNotFound):
 			c.JSON(http.StatusNotFound, validationError(err))
+		case errors.Is(err, repository.ErrUsernameAlreadyExists),
+			errors.Is(err, repository.ErrEmailAlreadyExists):
+			c.JSON(http.StatusConflict, validationError(err))
 		default:
 			c.JSON(http.StatusInternalServerError, validationError(err))
 		}
