@@ -127,3 +127,48 @@ func (r *FriendshipRepository) Reject(ctx context.Context, FriendshipID int64, r
 	}
 	return friendship, nil
 }
+
+func (r *FriendshipRepository) ListFriends(ctx context.Context, userID int64) ([]*model.User, error) {
+	query := `
+		SELECT u.id, u.username, u.email, u.created_at, u.updated_at
+		FROM friendships f
+		JOIN users u
+		ON u.id = CASE
+			WHEN f.requester_id = $1 THEN f.receiver_id
+			ELSE f.requester_id
+		END
+		WHERE (f.requester_id = $1 OR f.receiver_id = $1)
+		AND f.status = $2
+		ORDER BY f.created_at DESC
+	`
+	rows, err := r.db.Query(ctx, query, userID, model.FriendshipAccepted)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	friends := make([]*model.User, 0)
+
+	for rows.Next() {
+		friend := &model.User{}
+		err := rows.Scan(
+			&friend.ID,
+			&friend.Username,
+			&friend.Email,
+			&friend.CreatedAt,
+			&friend.UpdatedAt,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+		friends = append(friends, friend)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return friends, nil
+}

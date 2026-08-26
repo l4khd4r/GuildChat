@@ -68,3 +68,12 @@ func (s *FriendshipService) RejectFriendRequest(ctx context.Context, friendshipI
 
 	return friendship, nil
 }
+
+func (s *FriendshipService) ListFriends(ctx context.Context, userID int64) ([]*model.User, error) {
+	friends, err := s.friendshipRepo.ListFriends(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return friends, nil
+}

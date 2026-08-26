@@ -111,3 +111,19 @@ func (h *FriendshipHandler) RejectFriendRequest(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, friendship)
 }
+
+func (h *FriendshipHandler) ListFriends(c *gin.Context) {
+	userID, ok := auth.GetUserIDFromContext(c)
+
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+	friends, err := h.friendshipService.ListFriends(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, friends)
+}
