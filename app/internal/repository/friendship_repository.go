@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -59,7 +60,7 @@ func (r *FriendshipRepository) GetBetweenUsers(ctx context.Context, userID1 int6
 	)
 
 	if err != nil {
-		return nil, err
+		return nil, errors.New("friendship not found")
 	}
 	return friendship, nil
 }

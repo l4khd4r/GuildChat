@@ -354,3 +354,32 @@ prismo@fedora ~/D/GuildChat (main)> curl -X PUT  http://localhost:8080/me \
 {"error":"user not found"}⏎
 prismo@fedora ~/D/GuildChat (main)>
 ```
+
+
+
+
+
+for the friendship :
+```
+prismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/auth/login \
+
+                                          -H "Content-Type: application/json" \
+                                          -d '{
+                                        "email": "user1@gmail.com",
+                                        "password": "secret123"
+                                      }'
+{"token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc3MiOiJHdWlsZENoYXQiLCJzdWIiOiIxIiwiZXhwIjoxNzg3ODI1NDQ0LCJpYXQiOjE3ODc3MzkwNDR9.FNpHF3xTMbECOVXOtk-gqM3PtH8vnC4FtWODxTinhIMojp01cYcLtnIAvf9iDXOX5smSPe3qjrjanal3iQ2TOFrPMNe9xHHK2HRRpIG5pB8ZSUdpm9-9FEx0FSR2q2Fnxlcna6ahd7zEA6Ci92U71bIzblD_GvivXVxBpRchywzwwkfkaN3S-HfhWyrkmhQJRNSS92-kBvxZzg_niKQNyQS7BJtja-q7kc1qwsOqv3ArI9RcMHsuXqnBQv8WbeC6Q-eYKXZihC7o5wtEuG7EEL0lq3ILhyEK7rLQ2RUyho0nAk8CCBVQWR1LUvS2KCDxiApMKqVnCSrEyUIoiAO_FovB1AqfnXIliMsYbZV51CGXwA7SgB5EHWBE1Qzj_k5JfZJ7pQGYRfV-URsvV-JsN7OKIQD6CtQNFCNU9l-Pnb085AFM86T0y5oUWOj6kk9ly64FdfMRhT4jBYTVZw5XfIXg16bHHtFo6O8Mx3iHKbhRyJIofWU-7RelU0vCzKGAoTz0rNvlW3Sm4J6VNNIKgrCCCl8Jgg19Q0Vh1urxsbGfQ-dfpVNAl_e1C56mLT5yDV77Ed4PJU6XlC0cF7LylKYvHUD8_mYL7GGKb8X_RlYJAWytv-4kfe9RTe6XooQxpFoXiABy2MUkiRbVqPIBo0gvTwKVRv0GtrV8Zprismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/users/3/friend-request -H "Authorization: Bearer "
+{"error":"Authorization header format must be Bearer {token}"}⏎
+prismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/auth/login \
+                                          -H "Content-Type: application/json" \
+                                          -d '{
+                                        "email": "user1@gmail.com",
+                                        "password": "secret123"
+                                      }'
+{"token":"eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc3MiOiJHdWlsZENoYXQiLCJzdWIiOiIxIiwiZXhwIjoxNzg3ODI1NTEzLCJpYXQiOjE3ODc3MzkxMTN9.rAXWYVPkb7xcgV43yuvYNFbJ_PMp7R20Kzcr8A78-4kBhg4xR3LkZwkRuQ5ddqSXNBZYDnLf-EmbIAy9eWJKdmBPLSgtDlFyoU8KQOWDyCQSGeowCjqtliCWoGuGnsWtLEE3vz53MpxOc07Io8BLPbY91mC9g_2yO6PSspaLmCOWxzuZUGhZP5NO7WW-YwhPdXMTVTucx4IN27cdrUx0jmw2hmHED-cCU5f0ywOH-HSwYyn0HE4tMBNMT8nwthF9MU1wpAzuyc3y9s1RS8vQ-dgDka6-9e7ZewdmSYgushk048eyns9h2iknn9-59DkWWNURYfjQNfBx2RlBSFPnPhXUgfAial0wHYEVkwrmXXtIcdW7j7hbCcOA6FyFbo-WVb-pt3pRyIlff_oDJRnK18z8m1vCzwaNYZ8v-t3wrf-V_G9oVGO5nu1l9Hbjrj9Gtu44OoffASU7ijjiLqVX1OFl30xhSF53EvqQMu7bD0U-uUYXQF2bDTebzX4V61ywl2pXOEdi-OefqIMLJ470lXGBKMZVg7qQeR1mrPkVp3Q6CsMNFYi7PhKs1FVwVcuLaC2NbKJGt51nIEYwp4ZfKmNhdo5PVQgE1nSbUZCQl4xlR6wKL_YW0CTarfMiUDisEwEBVoB4uzY1meGCKy0Vh8UAq5aSOgBG9ioY65aQGOo","user":{"email":"user1@gmail.com","id":1,"username":"user1"}}⏎
+prismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/users/3/friend-request -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc3MiOiJHdWlsZENoYXQiLCJzdWIiOiIxIiwiZXhwIjoxNzg3ODI1NTEzLCJpYXQiOjE3ODc3MzkxMTN9.rAXWYVPkb7xcgV43yuvYNFbJ_PMp7R20Kzcr8A78-4kBhg4xR3LkZwkRuQ5ddqSXNBZYDnLf-EmbIAy9eWJKdmBPLSgtDlFyoU8KQOWDyCQSGeowCjqtliCWoGuGnsWtLEE3vz53MpxOc07Io8BLPbY91mC9g_2yO6PSspaLmCOWxzuZUGhZP5NO7WW-YwhPdXMTVTucx4IN27cdrUx0jmw2hmHED-cCU5f0ywOH-HSwYyn0HE4tMBNMT8nwthF9MU1wpAzuyc3y9s1RS8vQ-dgDka6-9e7ZewdmSYgushk048eyns9h2iknn9-59DkWWNURYfjQNfBx2RlBSFPnPhXUgfAial0wHYEVkwrmXXtIcdW7j7hbCcOA6FyFbo-WVb-pt3pRyIlff_oDJRnK18z8m1vCzwaNYZ8v-t3wrf-V_G9oVGO5nu1l9Hbjrj9Gtu44OoffASU7ijjiLqVX1OFl30xhSF53EvqQMu7bD0U-uUYXQF2bDTebzX4V61ywl2pXOEdi-OefqIMLJ470lXGBKMZVg7qQeR1mrPkVp3Q6CsMNFYi7PhKs1FVwVcuLaC2NbKJGt51nIEYwp4ZfKmNhdo5PVQgE1nSbUZCQl4xlR6wKL_YW0CTarfMiUDisEwEBVoB4uzY1meGCKy0Vh8UAq5aSOgBG9ioY65aQGOo"
+{"id":1,"requester_id":1,"receiver_id":3,"status":"pending","created_at":"2026-08-26T10:12:07.184571Z","updated_at":"2026-08-26T10:12:07.184571Z"}⏎
+prismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/users/3/friend-request -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJpc3MiOiJHdWlsZENoYXQiLCJzdWIiOiIxIiwiZXhwIjoxNzg3ODI1NTEzLCJpYXQiOjE3ODc3MzkxMTN9.rAXWYVPkb7xcgV43yuvYNFbJ_PMp7R20Kzcr8A78-4kBhg4xR3LkZwkRuQ5ddqSXNBZYDnLf-EmbIAy9eWJKdmBPLSgtDlFyoU8KQOWDyCQSGeowCjqtliCWoGuGnsWtLEE3vz53MpxOc07Io8BLPbY91mC9g_2yO6PSspaLmCOWxzuZUGhZP5NO7WW-YwhPdXMTVTucx4IN27cdrUx0jmw2hmHED-cCU5f0ywOH-HSwYyn0HE4tMBNMT8nwthF9MU1wpAzuyc3y9s1RS8vQ-dgDka6-9e7ZewdmSYgushk048eyns9h2iknn9-59DkWWNURYfjQNfBx2RlBSFPnPhXUgfAial0wHYEVkwrmXXtIcdW7j7hbCcOA6FyFbo-WVb-pt3pRyIlff_oDJRnK18z8m1vCzwaNYZ8v-t3wrf-V_G9oVGO5nu1l9Hbjrj9Gtu44OoffASU7ijjiLqVX1OFl30xhSF53EvqQMu7bD0U-uUYXQF2bDTebzX4V61ywl2pXOEdi-OefqIMLJ470lXGBKMZVg7qQeR1mrPkVp3Q6CsMNFYi7PhKs1FVwVcuLaC2NbKJGt51nIEYwp4ZfKmNhdo5PVQgE1nSbUZCQl4xlR6wKL_YW0CTarfMiUDisEwEBVoB4uzY1meGCKy0Vh8UAq5aSOgBG9ioY65aQGOo"
+{"error":"friendship already exists"}⏎
+
+```
