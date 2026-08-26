@@ -59,7 +59,7 @@ func main() {
 
 	authService := service.NewAuthService(userRepo, jwtManager)
 	authHandler := handler.NewAuthHandler(authService)
-	r := router.New(userHandler, authHandler,friendshipHandler, jwtManager)
+	r := router.New(userHandler, authHandler, friendshipHandler, jwtManager)
 	log.Println("Server is running on port : " + cfg.Port)
 
 	if err := r.Run(":" + cfg.Port); err != nil {
