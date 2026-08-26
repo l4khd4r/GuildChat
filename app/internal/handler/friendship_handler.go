@@ -56,62 +56,57 @@ func (h *FriendshipHandler) SendFriendRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, friendship)
 }
 
-
 func (h *FriendshipHandler) AcceptFriendRequest(c *gin.Context) {
-	friendshipId , err := strconv.ParseInt(c.Param("id") , 10 , 64)
-
+	friendshipId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error" : "invalid friendship ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid friendship ID"})
 		return
 	}
 
-	receiverId , ok := auth.GetUserIDFromContext(c)
+	receiverId, ok := auth.GetUserIDFromContext(c)
 
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error" : "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	friendship , err := h.friendshipService.AcceptFriendRequest(c.Request.Context(), friendshipId , receiverId)
+	friendship, err := h.friendshipService.AcceptFriendRequest(c.Request.Context(), friendshipId, receiverId)
 	if err != nil {
-		if errors.Is(err , pgx.ErrNoRows) {
-			c.JSON(http.StatusNotFound , gin.H{"error" : "friend request not found"})
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "friend request not found"})
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError , gin.H{"error" : "failed to accept friend request"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to accept friend request"})
 		return
 	}
 	c.JSON(http.StatusOK, friendship)
 }
 
-
-
 func (h *FriendshipHandler) RejectFriendRequest(c *gin.Context) {
-	friendshipId , err := strconv.ParseInt(c.Param("id") , 10 , 64)
-
+	friendshipId, err := strconv.ParseInt(c.Param("id"), 10, 64)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error" : "invalid friendship ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid friendship ID"})
 		return
 	}
 
-	receiverId , ok := auth.GetUserIDFromContext(c)
+	receiverId, ok := auth.GetUserIDFromContext(c)
 
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error" : "unauthorized"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	friendship , err := h.friendshipService.RejectFriendRequest(c.Request.Context(), friendshipId , receiverId)
+	friendship, err := h.friendshipService.RejectFriendRequest(c.Request.Context(), friendshipId, receiverId)
 	if err != nil {
-		if errors.Is(err , pgx.ErrNoRows) {
-			c.JSON(http.StatusNotFound , gin.H{"error" : "friend request not found"})
+		if errors.Is(err, pgx.ErrNoRows) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "friend request not found"})
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError , gin.H{"error" : "failed to reject friend request"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to reject friend request"})
 		return
 	}
 	c.JSON(http.StatusOK, friendship)

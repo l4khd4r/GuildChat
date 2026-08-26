@@ -64,7 +64,7 @@ func (r *FriendshipRepository) GetBetweenUsers(ctx context.Context, userID1 int6
 	}
 	return friendship, nil
 }
-func (r *FriendshipRepository) Accept(ctx context.Context , FriendshipID int64 , receiverId int64) (*model.Friendship, error) {
+func (r *FriendshipRepository) Accept(ctx context.Context, FriendshipID int64, receiverId int64) (*model.Friendship, error) {
 	friendship := &model.Friendship{}
 	query := `
 		UPDATE friendships
@@ -91,12 +91,12 @@ func (r *FriendshipRepository) Accept(ctx context.Context , FriendshipID int64 ,
 	)
 
 	if err != nil {
-		return nil , errors.New("friendship not found or not pending")
+		return nil, errors.New("friendship not found or not pending")
 	}
-	return friendship , nil
+	return friendship, nil
 }
 
-func (r *FriendshipRepository) Reject(ctx context.Context , FriendshipID int64 , receiverId int64) (*model.Friendship, error) {
+func (r *FriendshipRepository) Reject(ctx context.Context, FriendshipID int64, receiverId int64) (*model.Friendship, error) {
 	friendship := &model.Friendship{}
 	query := `
 		UPDATE friendships
@@ -123,7 +123,7 @@ func (r *FriendshipRepository) Reject(ctx context.Context , FriendshipID int64 ,
 	)
 
 	if err != nil {
-		return nil , errors.New("friendship not found or not pending")
+		return nil, errors.New("friendship not found or not pending")
 	}
-	return friendship , nil
+	return friendship, nil
 }
