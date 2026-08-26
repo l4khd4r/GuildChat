@@ -383,3 +383,61 @@ prismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/users/3/f
 {"error":"friendship already exists"}⏎
 
 ```
+
+
+
+friendship reject request :
+```
+prismo@fedora ~/D/GuildChat (main)> docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS                 PORTS                                         NAMES
+5faf7c08b0d6   guildchat-backend    "./guildchat"            22 seconds ago   Up 20 seconds          0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp   guildchat-backend
+03a9cefea69d   postgres:17-alpine   "docker-entrypoint.s…"   3 hours ago      Up 3 hours (healthy)   127.0.0.1:5432->5432/tcp                      guildchat-postgres
+prismo@fedora ~/D/GuildChat (main)>
+prismo@fedora ~/D/GuildChat (main)>  curl -X POST http://localhost:8080/users \
+                                        -H "Content-Type: application/json" \
+                                        -d '{"username":"user3" , "email":"user3@gmail
+.com" , "password":"secret123"}'
+{"id":4,"username":"user3","email":"user3@gmail.com","created_at":"2026-08-26T13:26:51.672652Z","updated_at":"2026-08-26T13:26:51.672652Z"}⏎
+prismo@fedora ~/D/GuildChat (main)> set TOKEN (curl -s -X POST http://localhost:8080/auth/login \
+                                              -H "Content-Type: application/json" \
+                                              -d '{
+                                        "email": "user3@gmail.com",
+                                        "password": "secret123"
+                                      }' | jq -r '.token')
+prismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/users/3/friend-request \
+                                          -H "Authorization: Bearer $TOKEN"
+{"id":2,"requester_id":4,"receiver_id":3,"status":"pending","created_at":"2026-08-26T13:28:25.804929Z","updated_at":"2026-08-26T13:28:25.804929Z"}⏎
+prismo@fedora ~/D/GuildChat (main)> set TOKEN (curl -s -X POST http://localhost:8080/auth/login \
+                                              -H "Content-Type: application/json" \
+                                              -d '{
+                                        "email": "user2@gmail.com",
+                                        "password": "secret123"
+                                      }' | jq -r '.token')
+prismo@fedora ~/D/GuildChat (main)> curl -X POST http://localhost:8080/friend-request/2/reject \
+                                          -H "Authorization: Bearer $TOKEN"
+{"id":2,"requester_id":4,"receiver_id":3,"status":"rejected","created_at":"2026-08-26T13:28:25.804929Z","updated_at":"2026-08-26T13:29:21.971738Z"}⏎
+prismo@fedora ~/D/GuildChat (main)>
+```
+
+
+db for the rejection / acception :
+```
+
+  4 | user3    | user3@gmail.com | $argon2id$v=19$m=65536,t=1,p=4$5vhQ5f1UJj4vcInFwbm+LA$7XIkL6BBM0qTRmbJb/xwDttPQSdx+3iwgyPU5jkdvV8 | 2026-08-26 13:26:51.672652+00 | 2026-08-26 13:26:51.672652+00
+(3 rows)
+
+guildchat=# select * from friendships;
+ id | requester_id | receiver_id |  status  |          created_at           |          updated_at
+----+--------------+-------------+----------+-------------------------------+-------------------------------
+  1 |            1 |           3 | accepted | 2026-08-26 10:12:07.184571+00 | 2026-08-26 13:11:01.35903+00
+  2 |            4 |           3 | pending  | 2026-08-26 13:28:25.804929+00 | 2026-08-26 13:28:25.804929+00
+(2 rows)
+
+guildchat=# select * from friendships;
+ id | requester_id | receiver_id |  status  |          created_at           |          updated_at
+----+--------------+-------------+----------+-------------------------------+-------------------------------
+  1 |            1 |           3 | accepted | 2026-08-26 10:12:07.184571+00 | 2026-08-26 13:11:01.35903+00
+  2 |            4 |           3 | rejected | 2026-08-26 13:28:25.804929+00 | 2026-08-26 13:29:21.971738+00
+(2 rows)
+
+```

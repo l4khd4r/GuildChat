@@ -95,3 +95,35 @@ func (r *FriendshipRepository) Accept(ctx context.Context , FriendshipID int64 ,
 	}
 	return friendship , nil
 }
+
+func (r *FriendshipRepository) Reject(ctx context.Context , FriendshipID int64 , receiverId int64) (*model.Friendship, error) {
+	friendship := &model.Friendship{}
+	query := `
+		UPDATE friendships
+		SET status = $1, updated_at = NOW()
+		WHERE id = $2
+		AND receiver_id = $3
+		AND status = $4
+		RETURNING id, requester_id, receiver_id, status, created_at, updated_at
+	`
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		model.FriendshipRejected,
+		FriendshipID,
+		receiverId,
+		model.FriendshipPending,
+	).Scan(
+		&friendship.ID,
+		&friendship.RequesterID,
+		&friendship.ReceiverID,
+		&friendship.Status,
+		&friendship.CreatedAt,
+		&friendship.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil , errors.New("friendship not found or not pending")
+	}
+	return friendship , nil
+}

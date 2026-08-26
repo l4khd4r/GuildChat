@@ -59,3 +59,15 @@ func (s *FriendshipService) AcceptFriendRequest(ctx context.Context, friendshipI
 
 	return friendship , nil
 }
+
+
+
+func (s *FriendshipService) RejectFriendRequest(ctx context.Context, friendshipID int64 , receiverId int64) (*model.Friendship, error) {
+	friendship , err := s.friendshipRepo.Reject(ctx, friendshipID , receiverId)
+
+	if err != nil {
+		return nil , err
+	}
+
+	return friendship , nil
+}
