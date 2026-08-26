@@ -53,9 +53,13 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userService)
 
+	friendshipRepo := repository.NewFriendshipRepository(db)
+	friendshipService := service.NewFriendshipService(friendshipRepo)
+	friendshipHandler := handler.NewFriendshipHandler(friendshipService)
+
 	authService := service.NewAuthService(userRepo, jwtManager)
 	authHandler := handler.NewAuthHandler(authService)
-	r := router.New(userHandler, authHandler, jwtManager)
+	r := router.New(userHandler, authHandler, friendshipHandler, jwtManager)
 	log.Println("Server is running on port : " + cfg.Port)
 
 	if err := r.Run(":" + cfg.Port); err != nil {

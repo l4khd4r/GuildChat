@@ -4,8 +4,10 @@ import "github.com/gin-gonic/gin"
 
 
 
+const userIDKey = "user_id"
+
 func GetUserID(c *gin.Context) (int64, bool) {
-	value, exists := c.Get("user_id")
+	value, exists := c.Get(userIDKey)
 	if !exists {
 		return 0, false
 	}
@@ -16,4 +18,8 @@ func GetUserID(c *gin.Context) (int64, bool) {
 	}
 
 	return userID, true
+}
+
+func GetUserIDFromContext(c *gin.Context) (int64, bool) {
+	return GetUserID(c)
 }
