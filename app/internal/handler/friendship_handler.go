@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/l4khd4r/GuildChat/internal/auth"
 	"github.com/l4khd4r/GuildChat/internal/repository"
 	"github.com/l4khd4r/GuildChat/internal/service"
@@ -50,6 +51,36 @@ func (h *FriendshipHandler) SendFriendRequest(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 
 		}
+		return
+	}
+	c.JSON(http.StatusOK, friendship)
+}
+
+
+func (h *FriendshipHandler) AcceptFriendRequest(c *gin.Context) {
+	friendshipId , err := strconv.ParseInt(c.Param("id") , 10 , 64)
+
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error" : "invalid friendship ID"})
+		return
+	}
+
+	receiverId , ok := auth.GetUserIDFromContext(c)
+
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error" : "unauthorized"})
+		return
+	}
+
+	friendship , err := h.friendshipService.AcceptFriendRequest(c.Request.Context(), friendshipId , receiverId)
+	if err != nil {
+		if errors.Is(err , pgx.ErrNoRows) {
+			c.JSON(http.StatusNotFound , gin.H{"error" : "friend request not found"})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError , gin.H{"error" : "failed to accept friend request"})
 		return
 	}
 	c.JSON(http.StatusOK, friendship)

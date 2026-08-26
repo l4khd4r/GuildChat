@@ -35,6 +35,7 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 	protected.DELETE("/me", userHandler.DeleteMe)
 
 	protected.POST("/users/:id/friend-request", friendshipHandler.SendFriendRequest)
+	protected.POST("/friend-request/:id/accept", friendshipHandler.AcceptFriendRequest)
 
 	return router
 }

@@ -48,3 +48,14 @@ func (s *FriendshipService) SendFriendRequest(ctx context.Context, requesterId i
 
 	return s.friendshipRepo.Create(ctx, requesterId, receiverId)
 }
+
+
+func (s *FriendshipService) AcceptFriendRequest(ctx context.Context, friendshipID int64 , receiverId int64) (*model.Friendship, error) {
+	friendship , err := s.friendshipRepo.Accept(ctx, friendshipID , receiverId)
+
+	if err != nil {
+		return nil , err
+	}
+
+	return friendship , nil
+}
