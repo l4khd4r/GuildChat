@@ -6,7 +6,7 @@ APP_DIR := app
 
 .DEFAULT_GOAL := help
 .PHONY: help up down restart build rebuild logs logs-db ps sh psql reset seed test vet fmt tidy run health \
-        migrate-up migrate-down migrate-version migrate-force migrate-new
+        migrate-up migrate-down migrate-version migrate-force migrate-new keys
 
 help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) \
@@ -88,6 +88,19 @@ tidy: ## Tidy go.mod / go.sum
 
 run: ## Run the server directly on the host (needs postgres up)
 	cd $(APP_DIR) && go run ./cmd/server
+
+## ---------- keys ----------
+
+keys: ## Generate the RSA keypair in keys/ (make keys FORCE=1 to overwrite)
+	@if [ -e keys/private.pem ] || [ -e keys/public.pem ]; then \
+		test -n "$(FORCE)" || { echo "keys/ already has a keypair; re-run with FORCE=1 to overwrite"; exit 1; }; \
+	fi
+	@mkdir -p keys
+	@openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out keys/private.pem
+	@openssl rsa -in keys/private.pem -pubout -out keys/public.pem
+	@chmod 600 keys/private.pem
+	@chmod 644 keys/public.pem
+	@echo "wrote keys/private.pem and keys/public.pem"
 
 ## ---------- misc ----------
 
