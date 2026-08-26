@@ -21,7 +21,6 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-
 func NewJWTManager(privateKey *rsa.PrivateKey, publicKey *rsa.PublicKey, issuer string, ttl time.Duration) *JWTManager {
 	return &JWTManager{
 		privateKey: privateKey,
@@ -57,35 +56,35 @@ func (manager *JWTManager) GenerateToken(userID int64) (string, error) {
 }
 
 func (m *JWTManager) ValidateToken(tokenString string) (*Claims, error) {
-    claims := &Claims{}
+	claims := &Claims{}
 
-    token, err := jwt.ParseWithClaims(
-        tokenString,
-        claims,
-        func(token *jwt.Token) (interface{}, error) {
-            if token.Method != jwt.SigningMethodRS256 {
-                return nil, fmt.Errorf(
-                    "unexpected signing method: %v",
-                    token.Header["alg"],
-                )
-            }
+	token, err := jwt.ParseWithClaims(
+		tokenString,
+		claims,
+		func(token *jwt.Token) (interface{}, error) {
+			if token.Method != jwt.SigningMethodRS256 {
+				return nil, fmt.Errorf(
+					"unexpected signing method: %v",
+					token.Header["alg"],
+				)
+			}
 
-            return m.publicKey, nil
-        },
+			return m.publicKey, nil
+		},
 		jwt.WithIssuer(m.issuer),
-    )
+	)
 
-    if err != nil {
-        return nil, err
-    }
-
-    if !token.Valid {
-        return nil, fmt.Errorf("invalid token")
-    }
-
-	claims , ok := token.Claims.(*Claims)
-	if !ok {
-		return nil , fmt.Errorf("invalid token claims")
+	if err != nil {
+		return nil, err
 	}
-    return claims, nil
+
+	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		return nil, fmt.Errorf("invalid token claims")
+	}
+	return claims, nil
 }

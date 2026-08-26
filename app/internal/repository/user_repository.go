@@ -137,8 +137,7 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.U
 	return user, nil
 }
 
-
-func (r *UserRepository) Update(ctx context.Context , id int64 , username string, email string  ) ( *model.User, error ) {
+func (r *UserRepository) Update(ctx context.Context, id int64, username string, email string) (*model.User, error) {
 	user := &model.User{}
 
 	query := `
@@ -168,7 +167,6 @@ func (r *UserRepository) Update(ctx context.Context , id int64 , username string
 	}
 	return user, nil
 }
-
 
 func (r *UserRepository) Delete(ctx context.Context, id int64) error {
 	query := `

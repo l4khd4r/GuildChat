@@ -16,9 +16,8 @@ type UserResponse struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-
 // the requirements makes them need to change them both username and email to update their profile
 type UpdateUserRequest struct {
 	Username string `json:"username" binding:"required,min=3,max=50"`
-	Email string `json:"email" binding:"required,email,max=255"`
+	Email    string `json:"email" binding:"required,email,max=255"`
 }

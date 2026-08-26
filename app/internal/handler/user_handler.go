@@ -93,14 +93,13 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userID, ok := auth.GetUserID(c)
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-	user , err := h.userService.GetUserByID(c.Request.Context() , userID)
+	user, err := h.userService.GetUserByID(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
@@ -110,21 +109,20 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		return
 	}
 	response := dto.UserResponse{
-		ID: 	  user.ID,
-		Username: user.Username,
-		Email:    user.Email,
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,
 	}
 	c.JSON(http.StatusOK, response)
 }
 
-
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	var req dto.UpdateUserRequest
 
-	if err := c.ShouldBindJSON(&req) ; err != nil {
-		c.JSON(http.StatusBadRequest , validationError(err))
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, validationError(err))
 		return
 	}
 
@@ -157,7 +155,6 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 }
-
 
 func (h *UserHandler) DeleteMe(c *gin.Context) {
 	userID, ok := auth.GetUserID(c)

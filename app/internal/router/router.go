@@ -30,7 +30,7 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 	protected := router.Group("/")
 	protected.Use(jwtManager.Middleware())
 
-	protected.GET("/me" , userHandler.GetMe)
+	protected.GET("/me", userHandler.GetMe)
 	protected.PUT("/me", userHandler.UpdateUser)
 	protected.DELETE("/me", userHandler.DeleteMe)
 

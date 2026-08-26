@@ -2,8 +2,6 @@ package auth
 
 import "github.com/gin-gonic/gin"
 
-
-
 const userIDKey = "user_id"
 
 func GetUserID(c *gin.Context) (int64, bool) {

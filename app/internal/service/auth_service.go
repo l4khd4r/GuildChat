@@ -11,10 +11,9 @@ import (
 )
 
 type AuthService struct {
-	userRepo *repository.UserRepository
+	userRepo   *repository.UserRepository
 	jwtManager *auth.JWTManager
 }
-
 
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
@@ -22,30 +21,29 @@ var (
 
 func NewAuthService(userRepo *repository.UserRepository, jwtManager *auth.JWTManager) *AuthService {
 	return &AuthService{
-		userRepo: userRepo,
+		userRepo:   userRepo,
 		jwtManager: jwtManager,
 	}
 }
 
-
 func (s *AuthService) Login(ctx context.Context, email string,
-	password string) (*model.User, string,  error) {
+	password string) (*model.User, string, error) {
 	user, err := s.userRepo.GetByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			return nil,"",ErrInvalidCredentials
+			return nil, "", ErrInvalidCredentials
 		}
-		return nil,"",err
+		return nil, "", err
 	}
 	valid, err := crypto.VerifyPassword(password, user.PasswordHash)
 	if !valid || err != nil {
-		return nil,"", ErrInvalidCredentials
+		return nil, "", ErrInvalidCredentials
 	}
 
-	token , err := s.jwtManager.GenerateToken(user.ID)
+	token, err := s.jwtManager.GenerateToken(user.ID)
 	if err != nil {
-		return nil,"",err
+		return nil, "", err
 	}
 
-	return user,token,nil
+	return user, token, nil
 }
