@@ -28,35 +28,20 @@ description: |-
   Nothing here is seeded manually. Every id, token and email used by a later
   request is captured from an earlier response.
 variables:
-  - key: baseUrl
-    value: 'http://localhost:8080'
-  - key: runId
-    value: ''
-  - key: userAId
-    value: ''
-  - key: userBId
-    value: ''
-  - key: userCId
-    value: ''
-  - key: userAUsername
-    value: ''
-  - key: userBUsername
-    value: ''
-  - key: userCUsername
-    value: ''
-  - key: userAEmail
-    value: ''
-  - key: tokenA
-    value: ''
-  - key: tokenB
-    value: ''
-  - key: tokenC
-    value: ''
-  - key: friendshipAB
-    value: ''
-  - key: friendshipAC
-    value: ''
-  - key: friendshipAC2
-    value: ''
+  baseUrl: http://localhost:8080
+  runId: ""
+  userAId: ""
+  userBId: ""
+  userCId: ""
+  userAUsername: ""
+  userBUsername: ""
+  userCUsername: ""
+  userAEmail: ""
+  tokenA: ""
+  tokenB: ""
+  tokenC: ""
+  friendshipAB: ""
+  friendshipAC: ""
+  friendshipAC2: ""
 auth:
   type: noauth
