@@ -1,0 +1,18 @@
+$kind: http-request
+name: Cancel Friend Request - already cancelled
+method: DELETE
+url: '{{baseUrl}}/friend-request/{{friendshipAC3}}'
+order: 6550
+description: |-
+  Cancelling twice. The row is gone, so the second DELETE matches nothing and
+  is indistinguishable from an id that never existed.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });

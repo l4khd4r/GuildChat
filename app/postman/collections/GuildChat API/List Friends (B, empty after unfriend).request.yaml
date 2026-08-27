@@ -1,0 +1,27 @@
+$kind: http-request
+name: List Friends (B, empty after unfriend)
+method: GET
+url: '{{baseUrl}}/me/friends'
+order: 6690
+description: |-
+  One row served both directions, so removing it removes the friendship for
+  both users. A must be gone from B's side too.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Body is an array, never null', function () {
+          pm.expect(pm.response.json()).to.be.an('array');
+      });
+
+      pm.test('A is gone from B\'s friends', function () {
+          const ids = pm.response.json().map(u => u.id);
+          pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('userAId')));
+      });

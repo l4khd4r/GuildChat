@@ -1,0 +1,22 @@
+$kind: http-request
+name: List Pending Friend Requests (C, empty after cancel)
+method: GET
+url: '{{baseUrl}}/me/friend-requests'
+order: 6540
+description: |-
+  The other side of the cancellation: C's inbox loses the request too.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenC}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('The cancelled request is gone from the inbox', function () {
+          const ids = pm.response.json().map(r => r.id);
+          pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('friendshipAC3')));
+      });

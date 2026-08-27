@@ -1,0 +1,22 @@
+$kind: http-request
+name: Cancel Friend Request (A)
+method: DELETE
+url: '{{baseUrl}}/friend-request/{{friendshipAC3}}'
+order: 6520
+description: |-
+  The sender withdraws their own pending request. The row is deleted, not
+  marked - same as a rejection.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Body confirms the deletion', function () {
+          pm.expect(pm.response.json()).to.have.property('message');
+      });

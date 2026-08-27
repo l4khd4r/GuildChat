@@ -20,7 +20,14 @@ description: |-
        users then see each other in /me/friends.
     5. A asks C, C rejects, then A asks again - which must succeed, because
        rejecting deletes the row rather than marking it.
-    6. All three accounts are deleted.
+    6. A asks C once more and cancels it themselves, checking that a third
+       party cannot, and that the request leaves both the outbox and the inbox.
+       Then A asks again and C removes it from their side, since cancelling is
+       open to both parties.
+    7. B unfriends A, after checking that a pending row cannot be unfriended
+       and that a third party cannot break up someone else's friendship. The
+       friendship disappears from both users' /me/friends.
+    8. All three accounts are deleted.
 
   Individual requests will fail on their own: most read a collection variable
   set by an earlier one. Run the collection, not a single request.
@@ -43,5 +50,8 @@ variables:
   friendshipAB: ""
   friendshipAC: ""
   friendshipAC2: ""
+  friendshipAC3: ""
+  friendshipAC4: ""
+  friendshipAC5: ""
 auth:
   type: noauth

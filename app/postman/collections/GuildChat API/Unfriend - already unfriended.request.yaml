@@ -1,0 +1,23 @@
+$kind: http-request
+name: Unfriend - already unfriended
+method: DELETE
+url: '{{baseUrl}}/friends/{{friendshipAB}}'
+order: 6700
+description: |-
+  The row is gone, so the second call matches nothing. Unfriending is not
+  idempotent in its status code: the first attempt is a 200, every one after
+  it is a 404, indistinguishable from an id that never existed.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });
+
+      pm.test('Body is the error', function () {
+          pm.expect(pm.response.json()).to.have.property('error');
+      });

@@ -1,0 +1,23 @@
+$kind: http-request
+name: List Friends (A, survived wrong user)
+method: GET
+url: '{{baseUrl}}/me/friends'
+order: 6660
+description: |-
+  The 404 above must have been a no-op, not a deletion answered badly. B is
+  still A's friend.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('B is still a friend of A', function () {
+          const ids = pm.response.json().map(u => u.id);
+          pm.expect(ids).to.include(Number(pm.collectionVariables.get('userBId')));
+      });

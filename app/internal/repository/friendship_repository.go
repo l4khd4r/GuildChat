@@ -264,3 +264,71 @@ func (r *FriendshipRepository) ListSentRequests(ctx context.Context, userID int6
 
 	return scanFriendRequests(rows)
 }
+
+// Delete removes a pending friend request.
+//
+// Either side may do it, which is why the WHERE matches requester_id OR
+// receiver_id: the sender cancels a request they no longer want, and the
+// receiver dismisses one they would rather not answer. Anyone else matches no
+// row. The status guard keeps an accepted friendship out of reach - unfriending
+// is a different operation.
+//
+// Like Reject, this deletes the row rather than marking it, so the pair stays
+// free to try again: unique_friendship_pair covers them whatever the status,
+// and a leftover row would block them forever.
+//
+// RETURNING plus QueryRow is what makes a 404 possible. Exec reports no error
+// when the WHERE matches nothing, so a request that never existed, was already
+// removed, or belongs to two other people would be indistinguishable from a
+// successful delete. Scanning turns "no row" into ErrFriendshipNotFound.
+func (r *FriendshipRepository) Delete(ctx context.Context, friendshipID int64, userID int64) error {
+	query := `
+		DELETE FROM friendships
+		WHERE id = $1
+		AND (requester_id = $2 OR receiver_id = $2)
+		AND status = $3
+		RETURNING id
+	`
+
+	var deletedID int64
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		friendshipID,
+		userID,
+		model.FriendshipPending,
+	).Scan(&deletedID)
+
+	if err != nil {
+		return mapFriendshipError(err)
+	}
+
+	return nil
+}
+
+
+
+func (r *FriendshipRepository) DeleteAccepted(ctx context.Context, friendshipID int64, userID int64) error {
+	query := `
+		DELETE FROM friendships
+		WHERE id = $1
+		AND (requester_id = $2 OR receiver_id = $2)
+		AND status = $3
+		RETURNING id
+	`
+
+	var deletedID int64
+	err := r.db.QueryRow(
+		ctx,
+		query,
+		friendshipID,
+		userID,
+		model.FriendshipAccepted,
+	).Scan(&deletedID)
+
+	if err != nil {
+		return mapFriendshipError(err)
+	}
+
+	return nil
+}

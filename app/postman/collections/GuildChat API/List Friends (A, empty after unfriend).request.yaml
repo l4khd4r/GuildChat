@@ -1,0 +1,27 @@
+$kind: http-request
+name: List Friends (A, empty after unfriend)
+method: GET
+url: '{{baseUrl}}/me/friends'
+order: 6680
+description: |-
+  B was A's only friend, so A's list is empty again - and empty means `[]`,
+  never `null`.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Body is an array, never null', function () {
+          pm.expect(pm.response.json()).to.be.an('array');
+      });
+
+      pm.test('B is gone from A\'s friends', function () {
+          const ids = pm.response.json().map(u => u.id);
+          pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('userBId')));
+      });

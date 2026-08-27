@@ -1,0 +1,23 @@
+$kind: http-request
+name: List Sent Friend Requests (A, survived wrong user)
+method: GET
+url: '{{baseUrl}}/me/friend-requests/sent'
+order: 6510
+description: |-
+  The real assertion for the previous request: B could not delete somebody
+  else's pending request, so it is still in A's outbox.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('The request to C is still pending', function () {
+          const ids = pm.response.json().map(r => r.id);
+          pm.expect(ids).to.include(Number(pm.collectionVariables.get('friendshipAC3')));
+      });

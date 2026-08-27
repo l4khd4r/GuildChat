@@ -120,3 +120,23 @@ func (s *FriendshipService) ListSentRequests(ctx context.Context, userID int64) 
 
 	return sentRequests, nil
 }
+
+// DeleteFriendRequest removes a pending request.
+//
+// Accept and reject are the receiver's answers; this one is open to both
+// parties - the sender cancels, the receiver dismisses. The authorisation rule
+// lives in the repository's WHERE clause, as it does for the other two: a
+// caller who is neither side, an id that does not exist, and a friendship that
+// is no longer pending all come back as ErrFriendshipNotFound.
+//
+// The error is returned as-is. Wrapping it in a fresh errors.New would flatten
+// it to a string and cost the handler its errors.Is check, turning every 404
+// into a 500.
+func (s *FriendshipService) DeleteFriendRequest(ctx context.Context, friendshipID int64, userID int64) error {
+	return s.friendshipRepo.Delete(ctx, friendshipID, userID)
+}
+
+
+func (s *FriendshipService) DeleteFriend(ctx context.Context, friendshipID int64, userID int64) error {
+	return s.friendshipRepo.DeleteAccepted(ctx, friendshipID, userID)
+}

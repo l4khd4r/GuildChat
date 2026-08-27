@@ -1,0 +1,26 @@
+$kind: http-request
+name: Send Friend Request (A to C, for C to dismiss)
+method: POST
+url: '{{baseUrl}}/users/{{userCId}}/friend-request'
+order: 6560
+description: |-
+  The cancel above was A removing their own request. This one sets up the other
+  half of the endpoint: the receiver removing a request addressed to them.
+  Saves the friendship id as `friendshipAC4`.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 201', function () {
+          pm.response.to.have.status(201);
+      });
+
+      const f = pm.response.json();
+      pm.collectionVariables.set('friendshipAC4', f.id);
+
+      pm.test('Pending, from A to C', function () {
+          pm.expect(f.status).to.eql('pending');
+      });

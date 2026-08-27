@@ -1,0 +1,19 @@
+$kind: http-request
+name: Cancel Friend Request - no token
+method: DELETE
+url: '{{baseUrl}}/friend-request/{{friendshipAC3}}'
+order: 6480
+description: |-
+  The route sits behind the auth middleware, so a missing Authorization
+  header never reaches the handler.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 401', function () {
+          pm.response.to.have.status(401);
+      });
+
+      pm.test('Body is the error', function () {
+          pm.expect(pm.response.json()).to.have.property('error');
+      });

@@ -1,0 +1,25 @@
+$kind: http-request
+name: Unfriend - still pending
+method: DELETE
+url: '{{baseUrl}}/friends/{{friendshipAC5}}'
+order: 6630
+description: |-
+  A is a party to this friendship, and the row exists - but its status is
+  `pending`, and the DELETE is scoped by `status = 'accepted'`. You cannot
+  unfriend someone who is not a friend yet: the right endpoint for a pending
+  row is DELETE /friend-request/:id. No row matches, so the caller gets a 404
+  and the request survives.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });
+
+      pm.test('Body is the error', function () {
+          pm.expect(pm.response.json()).to.have.property('error');
+      });

@@ -1,0 +1,26 @@
+$kind: http-request
+name: Dismiss Friend Request (C, the receiver)
+method: DELETE
+url: '{{baseUrl}}/friend-request/{{friendshipAC4}}'
+order: 6570
+description: |-
+  The receiver removing a request addressed to them. This is allowed, and
+  overlaps with POST /friend-request/:id/reject - both delete the row. The
+  difference is only the body: reject answers with the friendship, this
+  answers with a message.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenC}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Body is a message, not a friendship', function () {
+          const body = pm.response.json();
+          pm.expect(body).to.have.property('message');
+          pm.expect(body).to.not.have.property('status');
+      });

@@ -1,0 +1,23 @@
+$kind: http-request
+name: List Sent Friend Requests (A, after C dismissed)
+method: GET
+url: '{{baseUrl}}/me/friend-requests/sent'
+order: 6580
+description: |-
+  C's dismissal removed the row, so it leaves A's outbox too - and A is free
+  to ask again later, exactly as after a rejection.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('The dismissed request is gone', function () {
+          const ids = pm.response.json().map(r => r.id);
+          pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('friendshipAC4')));
+      });

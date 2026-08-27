@@ -1,0 +1,27 @@
+$kind: http-request
+name: Send Friend Request (A to C, to cancel)
+method: POST
+url: '{{baseUrl}}/users/{{userCId}}/friend-request'
+order: 6470
+description: |-
+  Third flow, to exercise cancellation by the sender. The previous request
+  was rejected, and rejecting deletes the row, so A is free to ask again.
+  Saves the friendship id as `friendshipAC3`.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 201', function () {
+          pm.response.to.have.status(201);
+      });
+
+      const f = pm.response.json();
+      pm.collectionVariables.set('friendshipAC3', f.id);
+
+      pm.test('Pending, from A to C', function () {
+          pm.expect(f.status).to.eql('pending');
+          pm.expect(f.receiver_id).to.eql(Number(pm.collectionVariables.get('userCId')));
+      });

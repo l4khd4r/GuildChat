@@ -1,0 +1,23 @@
+$kind: http-request
+name: Cancel Friend Request (A, unfriend setup cleanup)
+method: DELETE
+url: '{{baseUrl}}/friend-request/{{friendshipAC5}}'
+order: 6640
+description: |-
+  The pending request above has served its purpose. A withdraws it through the
+  endpoint that does accept pending rows, leaving only the accepted A-B
+  friendship for the unfriend tests that follow.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Body confirms the deletion', function () {
+          pm.expect(pm.response.json()).to.have.property('message');
+      });

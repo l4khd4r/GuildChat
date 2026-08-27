@@ -1,0 +1,22 @@
+$kind: http-request
+name: Cancel Friend Request - invalid id
+method: DELETE
+url: '{{baseUrl}}/friend-request/not-a-number'
+order: 6490
+description: |-
+  A non-numeric id fails ParseInt, so the handler answers 400 without ever
+  reaching the service.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 400', function () {
+          pm.response.to.have.status(400);
+      });
+
+      pm.test('Body is the error', function () {
+          pm.expect(pm.response.json()).to.have.property('error');
+      });

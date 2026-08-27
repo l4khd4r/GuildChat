@@ -1,0 +1,24 @@
+$kind: http-request
+name: Cancel Friend Request - wrong user
+method: DELETE
+url: '{{baseUrl}}/friend-request/{{friendshipAC3}}'
+order: 6500
+description: |-
+  Both parties may remove a pending request, but B is neither of them. The
+  DELETE is scoped by `requester_id = $2 OR receiver_id = $2`, so B matches no
+  row and gets the same 404 as a request that never existed - saying otherwise
+  would leak that A and C have something pending.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });
+
+      pm.test('Body is the error', function () {
+          pm.expect(pm.response.json()).to.have.property('error');
+      });

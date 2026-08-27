@@ -1,0 +1,25 @@
+$kind: http-request
+name: Send Friend Request (A to C, pending for unfriend)
+method: POST
+url: '{{baseUrl}}/users/{{userCId}}/friend-request'
+order: 6620
+description: |-
+  Sets up a *pending* friendship so the next request can prove that unfriending
+  only touches accepted ones. Saves the friendship id as `friendshipAC5`.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 201', function () {
+          pm.response.to.have.status(201);
+      });
+
+      const f = pm.response.json();
+      pm.collectionVariables.set('friendshipAC5', f.id);
+
+      pm.test('Pending, from A to C', function () {
+          pm.expect(f.status).to.eql('pending');
+      });

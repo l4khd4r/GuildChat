@@ -20,12 +20,13 @@ import (
 //
 // Routes, all behind the JWT middleware (see internal/router/router.go):
 //
-//	POST /users/:id/friend-request     :id = the user being asked
-//	POST /friend-request/:id/accept    :id = the friendship
-//	POST /friend-request/:id/reject    :id = the friendship
-//	GET  /me/friends
-//	GET  /me/friend-requests           requests I received
-//	GET  /me/friend-requests/sent      requests I sent
+//	POST   /users/:id/friend-request     :id = the user being asked
+//	POST   /friend-request/:id/accept    :id = the friendship
+//	POST   /friend-request/:id/reject    :id = the friendship
+//	DELETE /friend-request/:id           :id = the friendship
+//	GET    /me/friends
+//	GET    /me/friend-requests           requests I received
+//	GET    /me/friend-requests/sent      requests I sent
 //
 // Note the two different meanings of :id. Sending is addressed by *user*
 // (you know who you want to befriend, the friendship does not exist yet);
@@ -261,4 +262,87 @@ func (h *FriendshipHandler) ListSentFriendRequests(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, toFriendRequestResponses(sentRequests))
+}
+
+// DeleteFriendRequest handles DELETE /friend-request/:id.
+//
+// Removes a pending request. Both parties can: the sender cancels one they no
+// longer want, the receiver dismisses one they would rather not answer.
+// Responses:
+//
+//	200 a confirmation message
+//	400 :id is not a number
+//	404 no pending request with that id involving the caller
+//	500 anything else
+//
+// The 404 covers three cases the caller cannot tell apart, and should not be
+// able to: the id does not exist, it belongs to two other users, or the request
+// has already been answered. Saying which would leak whether a friendship
+// exists between people the caller has nothing to do with.
+//
+// For the receiver this overlaps with POST /friend-request/:id/reject - both
+// delete the row. Reject answers with the friendship, this answers with a
+// message.
+func (h *FriendshipHandler) DeleteFriendRequest(c *gin.Context) {
+	userID, ok := auth.GetUserIDFromContext(c)
+
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	friendshipID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid friendship ID"})
+		return
+	}
+
+	err = h.friendshipService.DeleteFriendRequest(c.Request.Context(), friendshipID, userID)
+
+	if err != nil {
+		if errors.Is(err, repository.ErrFriendshipNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "friend request not found"})
+			return
+		}
+
+		log.Printf("delete friend request %d by %d: %v", friendshipID, userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete friend request"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "friend request deleted successfully"})
+}
+
+
+func (h *FriendshipHandler) DeleteFriend(c *gin.Context) {
+	userID , ok := auth.GetUserIDFromContext(c)
+
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	friendshipID , err := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid friendship ID"})
+		return
+	}
+
+	err = h.friendshipService.DeleteFriend(c.Request.Context(), friendshipID, userID)
+
+	if err != nil {
+		if errors.Is(err, repository.ErrFriendshipNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "friendship not found"})
+			return
+		}
+
+		log.Printf("delete friendship %d by %d: %v", friendshipID, userID, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete friendship"})
+		return
+	}
+
+
+	c.JSON(http.StatusOK, gin.H{"message": "friendship deleted successfully"})
 }

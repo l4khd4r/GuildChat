@@ -219,6 +219,28 @@ rather than marked, so the body describes something that no longer exists. That
 is deliberate: the unique index covers the pair whatever its status, so a
 leftover rejected row would lock those two users out of ever requesting again.
 
+### `DELETE /friend-request/:id`
+
+Remove a pending request. `:id` is the friendship.
+
+| Code | Meaning |
+| --- | --- |
+| `200` | removed, returns a confirmation message |
+| `400` | `:id` is not a number |
+| `404` | no such request, you are neither side of it, or it is not pending |
+| `500` | anything else |
+
+Unlike accept and reject, this is open to **both** parties: the sender cancels a
+request they no longer want, the receiver dismisses one they would rather not
+answer. The `DELETE` matches on `requester_id = <caller> OR receiver_id =
+<caller>`, so anyone else gets the same `404` as a request that never existed.
+
+For the receiver it overlaps with `/reject` — both delete the row. Reject
+answers with the friendship, this answers with `{"message": ...}`.
+
+The `status = 'pending'` guard means an accepted friendship is out of reach
+here; unfriending is a separate operation.
+
 ### `GET /me/friends`
 
 Users the caller has an accepted friendship with, in either direction — it does
@@ -239,9 +261,9 @@ Outbox: pending requests **sent** by the caller. `user` is the receiver.
 
 `200` → array of `FriendRequestResponse`, newest first.
 
-A request that disappears from this list was either accepted (the user now
-shows up in `/me/friends`) or rejected — rejected rows are deleted, so they
-never linger here.
+A request that disappears from this list was accepted (the user now shows up in
+`/me/friends`), rejected, or cancelled — all three delete the row, so nothing
+lingers here.
 
 ---
 
