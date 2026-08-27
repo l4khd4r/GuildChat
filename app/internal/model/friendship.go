@@ -18,3 +18,13 @@ type Friendship struct {
 	CreatedAt   time.Time        `json:"created_at"`
 	UpdatedAt   time.Time        `json:"updated_at"`
 }
+
+// FriendRequest is the view of a pending friendship returned by the list
+// endpoints: the friendship itself (so the client can accept or reject it)
+// plus the user on the other side of it.
+type FriendRequest struct {
+	ID        int64            `json:"id"`
+	User      *User            `json:"user"`
+	Status    FriendshipStatus `json:"status"`
+	CreatedAt time.Time        `json:"created_at"`
+}
