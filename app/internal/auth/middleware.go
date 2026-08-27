@@ -14,7 +14,6 @@ func (m *JWTManager) Middleware() gin.HandlerFunc {
 			c.AbortWithStatusJSON(401, gin.H{"error": "Authorization header is missing"})
 			return
 		}
-
 		splits := strings.SplitN(authHeader, " ", 2)
 
 		if len(splits) != 2 || splits[0] != "Bearer" {
