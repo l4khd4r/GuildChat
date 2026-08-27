@@ -1,0 +1,20 @@
+$kind: http-request
+name: List Friends - no token
+method: GET
+url: '{{baseUrl}}/me/friends'
+order: 6330
+description: |-
+  Expects 401. Regression guard for the missing `return` after the 401 in
+  ListSentFriendRequests, which let a handler write a second body.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 401', function () {
+          pm.response.to.have.status(401);
+      });
+
+      pm.test('Exactly one JSON body was written', function () {
+          pm.expect(function () { pm.response.json(); }).to.not.throw();
+          pm.expect(pm.response.text().trim().split('}{')).to.have.lengthOf(1);
+      });

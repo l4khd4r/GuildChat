@@ -1,0 +1,19 @@
+$kind: http-request
+name: Send Friend Request - reverse direction
+method: POST
+url: '{{baseUrl}}/users/{{userAId}}/friend-request'
+order: 6020
+description: |-
+  B asks A back, the other way round. Expects 409 as well: the unique
+  index covers the unordered pair, so direction does not create a second
+  row.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 409', function () {
+          pm.response.to.have.status(409);
+      });

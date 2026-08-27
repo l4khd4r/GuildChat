@@ -1,0 +1,35 @@
+$kind: http-request
+name: Get Me
+method: GET
+url: '{{baseUrl}}/me'
+order: 5100
+description: |-
+  The authenticated user, resolved from the JWT rather than from the URL.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Content-Type is application/json', function () {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');
+      });
+
+      pm.test('Body is a user with no password field', function () {
+          const u = pm.response.json();
+          pm.expect(u).to.have.property('id').that.is.a('number');
+          pm.expect(u).to.have.property('username').that.is.a('string');
+          pm.expect(u).to.have.property('email').that.is.a('string');
+          pm.expect(u).to.have.property('created_at');
+          pm.expect(u).to.have.property('updated_at');
+          pm.expect(u).to.not.have.any.keys('password', 'password_hash', 'PasswordHash');
+      });
+
+      pm.test('Resolves to the token holder, user A', function () {
+          pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('userAId')));
+      });

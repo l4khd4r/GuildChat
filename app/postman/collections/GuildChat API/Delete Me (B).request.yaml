@@ -1,0 +1,25 @@
+$kind: http-request
+name: Delete Me (B)
+method: DELETE
+url: '{{baseUrl}}/me'
+order: 9010
+description: |-
+  Deletes throwaway user B. Answers 204 with no body, 404 if the account
+  is already gone.
+
+  Friendship rows referencing the user go with it, via ON DELETE CASCADE
+  on both foreign keys.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 204', function () {
+          pm.response.to.have.status(204);
+      });
+
+      pm.test('No body on a 204', function () {
+          pm.expect(pm.response.text()).to.be.empty;
+      });

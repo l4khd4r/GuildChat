@@ -1,0 +1,22 @@
+$kind: http-request
+name: Send Friend Request - to yourself
+method: POST
+url: '{{baseUrl}}/users/{{userAId}}/friend-request'
+order: 6030
+description: |-
+  Expects 400. Enforced in the service, and again by the
+  friendship_users_different CHECK constraint.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 400', function () {
+          pm.response.to.have.status(400);
+      });
+
+      pm.test('Says you cannot friend yourself', function () {
+          pm.expect(pm.response.json().error).to.match(/yourself/i);
+      });

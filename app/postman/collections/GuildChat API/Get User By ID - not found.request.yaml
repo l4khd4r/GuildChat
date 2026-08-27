@@ -1,0 +1,14 @@
+$kind: http-request
+name: Get User By ID - not found
+method: GET
+url: '{{baseUrl}}/users/999999999'
+order: 5010
+description: |-
+  Expects 404 for an id that does not exist.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });

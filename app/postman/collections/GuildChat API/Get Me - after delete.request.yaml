@@ -1,0 +1,18 @@
+$kind: http-request
+name: Get Me - after delete
+method: GET
+url: '{{baseUrl}}/me'
+order: 9030
+description: |-
+  A's token is still cryptographically valid, but the account behind it is
+  gone. Expects 404, not 401: the middleware only checks the signature.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });

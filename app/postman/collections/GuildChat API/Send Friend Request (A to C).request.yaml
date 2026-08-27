@@ -1,0 +1,34 @@
+$kind: http-request
+name: Send Friend Request (A to C)
+method: POST
+url: '{{baseUrl}}/users/{{userCId}}/friend-request'
+order: 6400
+description: |-
+  Second flow, to exercise rejection. Saves the friendship id as
+  `friendshipAC`.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 201', function () {
+          pm.response.to.have.status(201);
+      });
+
+      pm.test('Body is a friendship', function () {
+          const f = pm.response.json();
+          pm.expect(f).to.have.property('id').that.is.a('number');
+          pm.expect(f).to.have.property('requester_id').that.is.a('number');
+          pm.expect(f).to.have.property('receiver_id').that.is.a('number');
+          pm.expect(f).to.have.property('status').that.is.a('string');
+      });
+
+      const f = pm.response.json();
+      pm.collectionVariables.set('friendshipAC', f.id);
+
+      pm.test('Pending, from A to C', function () {
+          pm.expect(f.status).to.eql('pending');
+          pm.expect(f.receiver_id).to.eql(Number(pm.collectionVariables.get('userCId')));
+      });

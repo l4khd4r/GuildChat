@@ -1,0 +1,17 @@
+$kind: http-request
+name: Accept Friend Request - invalid id
+method: POST
+url: '{{baseUrl}}/friend-request/not-a-number/accept'
+order: 6220
+description: |-
+  Expects 400: :id fails strconv.ParseInt before anything else happens.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 400', function () {
+          pm.response.to.have.status(400);
+      });

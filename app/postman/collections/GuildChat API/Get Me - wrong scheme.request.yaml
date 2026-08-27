@@ -1,0 +1,21 @@
+$kind: http-request
+name: Get Me - wrong scheme
+method: GET
+url: '{{baseUrl}}/me'
+order: 5130
+description: |-
+  Uses Basic instead of Bearer. Expects 401 on the header format check.
+headers:
+  - key: Authorization
+    value: 'Basic dXNlcjpwYXNz'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 401', function () {
+          pm.response.to.have.status(401);
+      });
+
+      pm.test('Complains about the header format', function () {
+          pm.expect(pm.response.json().error).to.match(/bearer/i);
+      });

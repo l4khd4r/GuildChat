@@ -1,0 +1,14 @@
+$kind: http-request
+name: Get User By ID - invalid id
+method: GET
+url: '{{baseUrl}}/users/not-a-number'
+order: 5020
+description: |-
+  Expects 400: the :id path parameter fails strconv.ParseInt.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 400', function () {
+          pm.response.to.have.status(400);
+      });

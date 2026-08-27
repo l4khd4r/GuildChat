@@ -1,0 +1,28 @@
+$kind: http-request
+name: List Pending Friend Requests (A is empty)
+method: GET
+url: '{{baseUrl}}/me/friend-requests'
+order: 6120
+description: |-
+  A sent the request, so A's inbox must not contain it. Guards against the
+  two list queries being joined on the wrong column, which would make the
+  inbox and outbox mirror each other incorrectly.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Body is an array, never null', function () {
+          pm.expect(pm.response.json()).to.be.an('array');
+      });
+
+      pm.test("A's own outgoing request is not in A's inbox", function () {
+          const ids = pm.response.json().map(r => r.id);
+          pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('friendshipAB')));
+      });

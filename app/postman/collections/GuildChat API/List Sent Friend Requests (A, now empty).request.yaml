@@ -1,0 +1,27 @@
+$kind: http-request
+name: List Sent Friend Requests (A, now empty)
+method: GET
+url: '{{baseUrl}}/me/friend-requests/sent'
+order: 6320
+description: |-
+  Once accepted, the request leaves the outbox: both list endpoints filter
+  on status = 'pending'.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Body is an array, never null', function () {
+          pm.expect(pm.response.json()).to.be.an('array');
+      });
+
+      pm.test('The accepted friendship is no longer pending', function () {
+          const ids = pm.response.json().map(r => r.id);
+          pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('friendshipAB')));
+      });

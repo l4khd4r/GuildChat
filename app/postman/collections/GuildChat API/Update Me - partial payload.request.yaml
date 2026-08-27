@@ -1,0 +1,26 @@
+$kind: http-request
+name: Update Me - partial payload
+method: PUT
+url: '{{baseUrl}}/me'
+order: 5210
+description: |-
+  Sends only the username. Expects 400, because dto.UpdateUserRequest
+  marks both fields required.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "username": "onlyname{{runId}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 400', function () {
+          pm.response.to.have.status(400);
+      });

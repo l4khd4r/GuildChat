@@ -3,11 +3,60 @@ name: GuildChat API
 description: |-
   API collection for the GuildChat service (Go + Gin).
 
-  Endpoints are derived from the implementation in `internal/router/router.go`.
-  The server port is configured via the `PORT` environment variable; adjust the
-  `baseUrl` collection variable to match your running instance.
+  Covers every route in `internal/router/router.go`, including the failure
+  cases (400 / 401 / 404 / 409). See `endpoints.md` for the written reference.
+
+  ## Running it
+
+  Start the server, point `baseUrl` at it, and run the whole collection top to
+  bottom. Requests are ordered so the run tells a story:
+
+    1. Root seeds `runId`, a timestamp suffix that keeps usernames and emails
+       unique, so the collection can be re-run against the same database.
+    2. Three throwaway users are registered and logged in. Their tokens land in
+       `tokenA` / `tokenB` / `tokenC`.
+    3. The account endpoints are exercised as A.
+    4. A asks B, B accepts - checking the inbox, the outbox, and that both
+       users then see each other in /me/friends.
+    5. A asks C, C rejects, then A asks again - which must succeed, because
+       rejecting deletes the row rather than marking it.
+    6. All three accounts are deleted.
+
+  Individual requests will fail on their own: most read a collection variable
+  set by an earlier one. Run the collection, not a single request.
+
+  Nothing here is seeded manually. Every id, token and email used by a later
+  request is captured from an earlier response.
 variables:
   - key: baseUrl
     value: 'http://localhost:8080'
+  - key: runId
+    value: ''
+  - key: userAId
+    value: ''
+  - key: userBId
+    value: ''
+  - key: userCId
+    value: ''
+  - key: userAUsername
+    value: ''
+  - key: userBUsername
+    value: ''
+  - key: userCUsername
+    value: ''
+  - key: userAEmail
+    value: ''
+  - key: tokenA
+    value: ''
+  - key: tokenB
+    value: ''
+  - key: tokenC
+    value: ''
+  - key: friendshipAB
+    value: ''
+  - key: friendshipAC
+    value: ''
+  - key: friendshipAC2
+    value: ''
 auth:
   type: noauth

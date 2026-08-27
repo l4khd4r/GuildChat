@@ -3,4 +3,24 @@ name: Root
 method: GET
 url: '{{baseUrl}}/'
 order: 1000
-description: Welcome endpoint. Returns a welcome message.
+description: |-
+  Welcome endpoint.
+
+  Runs first, and seeds the `runId` collection variable that every later
+  request uses to build unique usernames and emails, so the collection can
+  be run repeatedly against the same database without colliding.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      // Seed the run. Usernames are capped at 20 chars by the API, so keep the
+      // suffix short: 9 digits leaves room for a readable prefix.
+      pm.collectionVariables.set('runId', String(Date.now()).slice(-9));
+
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Returns the welcome message', function () {
+          pm.expect(pm.response.json()).to.have.property('message');
+      });

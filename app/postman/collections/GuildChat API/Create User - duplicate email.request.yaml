@@ -1,0 +1,29 @@
+$kind: http-request
+name: Create User - duplicate email
+method: POST
+url: '{{baseUrl}}/users'
+order: 3300
+description: |-
+  Re-sends user A's registration. Expects 409: the email is already taken.
+headers:
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "username": "dup{{runId}}",
+      "email": "usera{{runId}}@example.com",
+      "password": "ChangeMe123!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 409', function () {
+          pm.response.to.have.status(409);
+      });
+
+      pm.test('Explains which field collided', function () {
+          pm.expect(pm.response.json().error).to.match(/already exists/i);
+      });

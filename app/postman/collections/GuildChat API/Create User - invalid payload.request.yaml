@@ -1,0 +1,30 @@
+$kind: http-request
+name: Create User - invalid payload
+method: POST
+url: '{{baseUrl}}/users'
+order: 3400
+description: |-
+  Short username, malformed email, short password. Expects 400 from the
+  binding tags on dto.CreateUserRequest.
+headers:
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "username": "x",
+      "email": "not-an-email",
+      "password": "short"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 400', function () {
+          pm.response.to.have.status(400);
+      });
+
+      pm.test('Body carries an error', function () {
+          pm.expect(pm.response.json()).to.have.property('error');
+      });

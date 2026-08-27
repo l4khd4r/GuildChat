@@ -1,0 +1,37 @@
+$kind: http-request
+name: Send Friend Request (A to C again)
+method: POST
+url: '{{baseUrl}}/users/{{userCId}}/friend-request'
+order: 6450
+description: |-
+  The point of deleting on reject. unique_friendship_pair covers the pair
+  whatever its status, so a leftover rejected row would make this 409 and
+  lock the two users out permanently.
+
+  Expects 201 and a *new* friendship id.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 201 - a rejected pair can try again', function () {
+          pm.response.to.have.status(201);
+      });
+
+      pm.test('Body is a friendship', function () {
+          const f = pm.response.json();
+          pm.expect(f).to.have.property('id').that.is.a('number');
+          pm.expect(f).to.have.property('requester_id').that.is.a('number');
+          pm.expect(f).to.have.property('receiver_id').that.is.a('number');
+          pm.expect(f).to.have.property('status').that.is.a('string');
+      });
+
+      const f = pm.response.json();
+      pm.collectionVariables.set('friendshipAC2', f.id);
+
+      pm.test('A brand new pending row, not the rejected one', function () {
+          pm.expect(f.status).to.eql('pending');
+          pm.expect(f.id).to.not.eql(Number(pm.collectionVariables.get('friendshipAC')));
+      });

@@ -1,0 +1,50 @@
+$kind: http-request
+name: List Sent Friend Requests (A)
+method: GET
+url: '{{baseUrl}}/me/friend-requests/sent'
+order: 6100
+description: |-
+  A's outbox. Should contain the pending request to B, carrying the
+  friendship id so a client can act on it.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Content-Type is application/json', function () {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');
+      });
+
+      pm.test('Body is an array, never null', function () {
+          pm.expect(pm.response.json()).to.be.an('array');
+      });
+
+      pm.test('Entries carry a friendship id and the other user', function () {
+          const list = pm.response.json();
+          if (list.length === 0) { return; }
+          const entry = list[0];
+          pm.expect(entry).to.have.property('id').that.is.a('number');
+          pm.expect(entry).to.have.property('status');
+          pm.expect(entry).to.have.property('created_at');
+          pm.expect(entry.user).to.have.property('id').that.is.a('number');
+          pm.expect(entry.user).to.have.property('username');
+          pm.expect(entry.user).to.not.have.any.keys('password', 'password_hash');
+      });
+
+      const list = pm.response.json();
+      const target = list.find(r => r.id === Number(pm.collectionVariables.get('friendshipAB')));
+
+      pm.test('Contains the request A just sent', function () {
+          pm.expect(target, 'friendship not in outbox').to.not.be.undefined;
+          pm.expect(target.status).to.eql('pending');
+      });
+
+      pm.test('The embedded user is the receiver, B', function () {
+          pm.expect(target.user.id).to.eql(Number(pm.collectionVariables.get('userBId')));
+      });

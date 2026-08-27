@@ -1,0 +1,18 @@
+$kind: http-request
+name: Accept Friend Request - already accepted
+method: POST
+url: '{{baseUrl}}/friend-request/{{friendshipAB}}/accept'
+order: 6240
+description: |-
+  Accepting twice. Expects 404: the UPDATE also matches on
+  status = 'pending', so there is no row left to change.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });

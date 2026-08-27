@@ -3,7 +3,8 @@ name: Health Check
 method: GET
 url: '{{baseUrl}}/health'
 order: 2000
-description: Health check endpoint. Returns the service status.
+description: |-
+  Health check endpoint. Returns the service status.
 scripts:
   - type: afterResponse
     language: text/javascript
@@ -17,8 +18,7 @@ scripts:
       });
 
       pm.test("Response body reports status 'healthy'", function () {
-          const body = pm.response.json();
-          pm.expect(body).to.have.property('status', 'healthy');
+          pm.expect(pm.response.json()).to.have.property('status', 'healthy');
       });
 
       pm.test('Response time is below 500ms', function () {

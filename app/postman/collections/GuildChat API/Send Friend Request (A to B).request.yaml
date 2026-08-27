@@ -1,0 +1,46 @@
+$kind: http-request
+name: Send Friend Request (A to B)
+method: POST
+url: '{{baseUrl}}/users/{{userBId}}/friend-request'
+order: 6000
+description: |-
+  User A asks user B. :id here is the *receiver's user id* - the
+  friendship does not exist yet, so it cannot be addressed by its own id.
+
+  Saves the new friendship id as `friendshipAB`, which the accept request
+  below uses as its :id.
+
+  201 on success, 400 for a bad id or yourself, 409 if already linked.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 201', function () {
+          pm.response.to.have.status(201);
+      });
+
+      pm.test('Content-Type is application/json', function () {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');
+      });
+
+      pm.test('Body is a friendship', function () {
+          const f = pm.response.json();
+          pm.expect(f).to.have.property('id').that.is.a('number');
+          pm.expect(f).to.have.property('requester_id').that.is.a('number');
+          pm.expect(f).to.have.property('receiver_id').that.is.a('number');
+          pm.expect(f).to.have.property('status').that.is.a('string');
+          pm.expect(f).to.have.property('created_at');
+          pm.expect(f).to.have.property('updated_at');
+      });
+
+      const f = pm.response.json();
+      pm.collectionVariables.set('friendshipAB', f.id);
+
+      pm.test('Starts out pending, from A to B', function () {
+          pm.expect(f.status).to.eql('pending');
+          pm.expect(f.requester_id).to.eql(Number(pm.collectionVariables.get('userAId')));
+          pm.expect(f.receiver_id).to.eql(Number(pm.collectionVariables.get('userBId')));
+      });

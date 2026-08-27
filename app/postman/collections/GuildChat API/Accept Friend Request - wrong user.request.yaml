@@ -1,0 +1,19 @@
+$kind: http-request
+name: Accept Friend Request - wrong user
+method: POST
+url: '{{baseUrl}}/friend-request/{{friendshipAB}}/accept'
+order: 6200
+description: |-
+  User C tries to accept a request addressed to B. Expects 404, not 403:
+  authorisation is enforced in the UPDATE's WHERE clause, and telling the
+  cases apart would leak that the friendship exists.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenC}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });

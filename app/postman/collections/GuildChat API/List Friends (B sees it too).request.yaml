@@ -1,0 +1,27 @@
+$kind: http-request
+name: List Friends (B sees it too)
+method: GET
+url: '{{baseUrl}}/me/friends'
+order: 6310
+description: |-
+  The same friendship seen from the receiving side. Both users must see
+  each other.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Body is an array, never null', function () {
+          pm.expect(pm.response.json()).to.be.an('array');
+      });
+
+      pm.test('A is a friend of B', function () {
+          const ids = pm.response.json().map(u => u.id);
+          pm.expect(ids).to.include(Number(pm.collectionVariables.get('userAId')));
+      });

@@ -1,0 +1,18 @@
+$kind: http-request
+name: Reject Friend Request - wrong user
+method: POST
+url: '{{baseUrl}}/friend-request/{{friendshipAC}}/reject'
+order: 6410
+description: |-
+  B tries to reject a request addressed to C. Expects 404, same rule as
+  accept.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });

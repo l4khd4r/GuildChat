@@ -1,0 +1,18 @@
+$kind: http-request
+name: Get Me - no token
+method: GET
+url: '{{baseUrl}}/me'
+order: 5110
+description: |-
+  No Authorization header. Expects 401 from the JWT middleware.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 401', function () {
+          pm.response.to.have.status(401);
+      });
+
+      pm.test('Says the header is missing', function () {
+          pm.expect(pm.response.json().error).to.match(/authorization header is missing/i);
+      });

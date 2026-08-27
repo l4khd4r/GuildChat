@@ -1,0 +1,14 @@
+$kind: http-request
+name: Send Friend Request - no token
+method: POST
+url: '{{baseUrl}}/users/{{userBId}}/friend-request'
+order: 6040
+description: |-
+  Expects 401 from the middleware, before any handler runs.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 401', function () {
+          pm.response.to.have.status(401);
+      });

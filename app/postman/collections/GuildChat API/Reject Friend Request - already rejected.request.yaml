@@ -1,0 +1,17 @@
+$kind: http-request
+name: Reject Friend Request - already rejected
+method: POST
+url: '{{baseUrl}}/friend-request/{{friendshipAC}}/reject'
+order: 6430
+description: |-
+  Rejecting twice. Expects 404: the row is gone.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenC}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });

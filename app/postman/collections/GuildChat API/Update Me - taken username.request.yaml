@@ -1,0 +1,30 @@
+$kind: http-request
+name: Update Me - taken username
+method: PUT
+url: '{{baseUrl}}/me'
+order: 5220
+description: |-
+  User A tries to take user B's username. Expects 409.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+  - key: Content-Type
+    value: 'application/json'
+body:
+  type: json
+  content: |-
+    {
+      "username": "{{userBUsername}}",
+      "email": "edited{{runId}}@example.com"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 409', function () {
+          pm.response.to.have.status(409);
+      });
+
+      pm.test('Explains the collision', function () {
+          pm.expect(pm.response.json().error).to.match(/already exists/i);
+      });

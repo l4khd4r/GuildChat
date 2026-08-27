@@ -1,0 +1,21 @@
+$kind: http-request
+name: List Sent Friend Requests - no token
+method: GET
+url: '{{baseUrl}}/me/friend-requests/sent'
+order: 6340
+description: |-
+  Same guard on the endpoint where the missing return actually was: the
+  handler continued past the 401 and queried with user id 0.
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 401', function () {
+          pm.response.to.have.status(401);
+      });
+
+      pm.test('Body is the error, not a list of requests', function () {
+          const body = pm.response.json();
+          pm.expect(body).to.not.be.an('array');
+          pm.expect(body).to.have.property('error');
+      });

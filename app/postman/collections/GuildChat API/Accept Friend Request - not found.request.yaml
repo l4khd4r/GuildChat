@@ -1,0 +1,22 @@
+$kind: http-request
+name: Accept Friend Request - not found
+method: POST
+url: '{{baseUrl}}/friend-request/999999999/accept'
+order: 6210
+description: |-
+  Expects 404 for a friendship id that does not exist. Regression guard:
+  this returned 500 while the repository was discarding pgx.ErrNoRows.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 404', function () {
+          pm.response.to.have.status(404);
+      });
+
+      pm.test('Not a 500 - the sentinel error survived the repository', function () {
+          pm.expect(pm.response.code).to.not.eql(500);
+      });

@@ -1,0 +1,42 @@
+$kind: http-request
+name: List Friends (A)
+method: GET
+url: '{{baseUrl}}/me/friends'
+order: 6300
+description: |-
+  A's friends. B must appear even though A was the requester: the query
+  resolves "the other user" with a CASE, so direction does not matter.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
+
+      pm.test('Content-Type is application/json', function () {
+          pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');
+      });
+
+      pm.test('Body is an array, never null', function () {
+          pm.expect(pm.response.json()).to.be.an('array');
+      });
+
+      const ids = pm.response.json().map(u => u.id);
+
+      pm.test('B is now a friend of A', function () {
+          pm.expect(ids).to.include(Number(pm.collectionVariables.get('userBId')));
+      });
+
+      pm.test('A is not listed as their own friend', function () {
+          pm.expect(ids).to.not.include(Number(pm.collectionVariables.get('userAId')));
+      });
+
+      pm.test('No password fields leak through', function () {
+          pm.response.json().forEach(function (u) {
+              pm.expect(u).to.not.have.any.keys('password', 'password_hash', 'PasswordHash');
+          });
+      });

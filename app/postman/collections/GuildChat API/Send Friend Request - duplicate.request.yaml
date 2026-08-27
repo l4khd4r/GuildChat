@@ -1,0 +1,21 @@
+$kind: http-request
+name: Send Friend Request - duplicate
+method: POST
+url: '{{baseUrl}}/users/{{userBId}}/friend-request'
+order: 6010
+description: |-
+  A asks B again while the first request is still pending. Expects 409.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenA}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 409', function () {
+          pm.response.to.have.status(409);
+      });
+
+      pm.test('Reports the existing friendship', function () {
+          pm.expect(pm.response.json().error).to.match(/already exists/i);
+      });

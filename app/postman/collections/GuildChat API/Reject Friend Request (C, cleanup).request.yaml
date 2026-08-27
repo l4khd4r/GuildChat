@@ -1,0 +1,17 @@
+$kind: http-request
+name: Reject Friend Request (C, cleanup)
+method: POST
+url: '{{baseUrl}}/friend-request/{{friendshipAC2}}/reject'
+order: 6460
+description: |-
+  Clears the second request so the run leaves nothing pending behind.
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenC}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('Status code is 200', function () {
+          pm.response.to.have.status(200);
+      });
