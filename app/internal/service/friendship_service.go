@@ -136,7 +136,6 @@ func (s *FriendshipService) DeleteFriendRequest(ctx context.Context, friendshipI
 	return s.friendshipRepo.Delete(ctx, friendshipID, userID)
 }
 
-
 func (s *FriendshipService) DeleteFriend(ctx context.Context, friendshipID int64, userID int64) error {
 	return s.friendshipRepo.DeleteAccepted(ctx, friendshipID, userID)
 }

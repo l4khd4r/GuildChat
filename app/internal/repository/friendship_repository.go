@@ -306,8 +306,6 @@ func (r *FriendshipRepository) Delete(ctx context.Context, friendshipID int64, u
 	return nil
 }
 
-
-
 func (r *FriendshipRepository) DeleteAccepted(ctx context.Context, friendshipID int64, userID int64) error {
 	query := `
 		DELETE FROM friendships

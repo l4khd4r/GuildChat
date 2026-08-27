@@ -43,6 +43,6 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 	protected.GET("/me/friend-requests/sent", friendshipHandler.ListSentFriendRequests)
 
 	protected.DELETE("/friend-request/:id", friendshipHandler.DeleteFriendRequest) // this is removing the row of the pending request
-	protected.DELETE("/friends/:id", friendshipHandler.DeleteFriend) // this is unfriend someone ( accepted )
+	protected.DELETE("/friends/:id", friendshipHandler.DeleteFriend)               // this is unfriend someone ( accepted )
 	return router
 }

@@ -314,16 +314,15 @@ func (h *FriendshipHandler) DeleteFriendRequest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "friend request deleted successfully"})
 }
 
-
 func (h *FriendshipHandler) DeleteFriend(c *gin.Context) {
-	userID , ok := auth.GetUserIDFromContext(c)
+	userID, ok := auth.GetUserIDFromContext(c)
 
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
-	friendshipID , err := strconv.ParseInt(c.Param("id"), 10, 64)
+	friendshipID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid friendship ID"})
@@ -342,7 +341,6 @@ func (h *FriendshipHandler) DeleteFriend(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete friendship"})
 		return
 	}
-
 
 	c.JSON(http.StatusOK, gin.H{"message": "friendship deleted successfully"})
 }

@@ -147,8 +147,10 @@ Watch the two meanings of `:id` here:
 
 - **sending** is addressed by **user** id — you know who you want to befriend,
   and the friendship does not exist yet;
-- **accepting and rejecting** are addressed by **friendship** id — the row
-  already exists, and the list endpoints hand you its id.
+- **accepting, rejecting and removing** are addressed by **friendship** id —
+  the row already exists, and the list endpoints hand you its id. That includes
+  `DELETE /friends/:id`: unfriending takes the id of the friendship, not the id
+  of the friend.
 
 Responses use two shapes:
 
@@ -239,7 +241,44 @@ For the receiver it overlaps with `/reject` — both delete the row. Reject
 answers with the friendship, this answers with `{"message": ...}`.
 
 The `status = 'pending'` guard means an accepted friendship is out of reach
-here; unfriending is a separate operation.
+here; unfriending is `DELETE /friends/:id` below.
+
+### `DELETE /friends/:id`
+
+Unfriend someone. `:id` is the friendship, not the other user's id — the id the
+accept response returned, or the one the request appeared under in
+`/me/friend-requests`.
+
+| Code | Meaning |
+| --- | --- |
+| `200` | removed, returns a confirmation message |
+| `400` | `:id` is not a number |
+| `404` | no such friendship, you are neither side of it, or it is not accepted |
+| `500` | anything else |
+
+Open to **both** sides, whoever originally sent the request: the `DELETE`
+matches on `requester_id = <caller> OR receiver_id = <caller>`, so either
+friend can break it off and anyone else gets the same `404` as a friendship
+that never existed.
+
+It is the mirror image of `DELETE /friend-request/:id`. That one is guarded by
+`status = 'pending'`, this one by `status = 'accepted'`, so each id belongs to
+exactly one of them and neither can be used to do the other's job. Pointing
+this endpoint at a request that is still pending is a `404`, and the request is
+left untouched.
+
+One row serves both directions, so removing it removes the friendship for both
+users at once — each disappears from the other's `/me/friends`. The row is
+**deleted**, not marked, for the same reason a rejection is: the unique index
+covers the pair whatever its status, and a leftover row would stop the two from
+ever befriending each other again. After unfriending, either may send a fresh
+request.
+
+The operation is not idempotent in its status code. The first call is a `200`,
+every one after it a `404`, indistinguishable from an id that never existed.
+
+Note that `/me/friends` returns users, without the id of the friendship joining
+them, so a client that only ever calls that endpoint has no id to send here.
 
 ### `GET /me/friends`
 
@@ -273,4 +312,5 @@ lingers here.
 route above, including the failure cases (`400`, `401`, `404`, `409`). It runs
 top to bottom against a fresh database: it registers three throwaway users,
 logs them in, exercises the full request → accept and request → reject → resend
-flows, then deletes the accounts it made.
+flows, cancels and dismisses a pending request, unfriends an accepted one, then
+deletes the accounts it made.
