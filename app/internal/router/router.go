@@ -39,6 +39,7 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 
 	protected.POST("/friend-request/:id/reject", friendshipHandler.RejectFriendRequest)
 	protected.GET("/me/friends", friendshipHandler.ListFriends)
-
+	protected.GET("/me/friend-requests", friendshipHandler.ListPendingFriendRequests)
+	protected.GET("/me/friend-requests/sent", friendshipHandler.ListSentFriendRequests)
 	return router
 }
