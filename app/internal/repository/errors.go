@@ -11,4 +11,6 @@ var (
 	ErrCannotFriendYourself    = errors.New("cannot send friend request to yourself")
 	ErrFriendshipNotFound      = errors.New("friendship not found")
 	ErrFriendshipAlreadyExists = errors.New("friendship already exists")
+
+	ErrNotFound = errors.New("not found")
 )

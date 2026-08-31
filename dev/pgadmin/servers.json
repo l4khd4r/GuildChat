@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "GuildChat",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "guildchat",
+      "Username": "postgres",
+      "SSLMode": "prefer",
+      "Comment": "Local dev database (docker compose service `postgres`)"
+    }
+  }
+}

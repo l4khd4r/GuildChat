@@ -5,7 +5,7 @@ DC      := docker compose
 APP_DIR := app
 
 .DEFAULT_GOAL := help
-.PHONY: help up down restart build rebuild logs logs-db ps sh psql reset seed test vet fmt tidy run health \
+.PHONY: help up down restart build rebuild logs logs-db ps sh psql pgadmin pgadmin-down reset seed test vet fmt tidy run health \
         migrate-up migrate-down migrate-version migrate-force migrate-new keys
 
 help: ## Show this help
@@ -44,6 +44,13 @@ sh: ## Shell into the backend container
 
 psql: ## Open a psql prompt on the database
 	$(DC) exec postgres psql -U postgres -d guildchat
+
+pgadmin: ## Start the pgAdmin database browser on http://localhost:5050
+	$(DC) --profile tools up -d pgadmin
+	@echo "pgAdmin: http://localhost:5050  (server \"GuildChat\" is preconfigured)"
+
+pgadmin-down: ## Stop pgAdmin
+	$(DC) --profile tools stop pgadmin
 
 ## ---------- database ----------
 

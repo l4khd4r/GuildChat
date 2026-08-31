@@ -1,6 +1,8 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/l4khd4r/GuildChat/internal/auth"
 	"github.com/l4khd4r/GuildChat/internal/handler"
@@ -10,13 +12,13 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 	router := gin.Default()
 
 	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"message": "Welcome to My World!",
 		})
 	})
 
 	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"status": "healthy",
 		})
 	})
@@ -24,8 +26,6 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 	router.GET("/users/:id", userHandler.GetUserByID)
 
 	router.POST("/auth/login", authHandler.Login)
-
-	// Protected routes
 
 	protected := router.Group("/")
 	protected.Use(jwtManager.Middleware())
