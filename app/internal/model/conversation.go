@@ -13,7 +13,7 @@ type Conversation struct {
 	ID        int64    `json:"id"`
 	Type      string    `json:"type"`
 	Name      *string   `json:"name,omitempty"`
-	CreatedBy string    `json:"created_by"`
+	CreatedBy int64    `json:"created_by"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }

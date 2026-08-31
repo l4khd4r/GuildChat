@@ -1,5 +1,5 @@
 CREATE TABLE conversations (
-  id BIGINT PRIMARY KEY,
+  id BIGSERIAL PRIMARY KEY,
   type VARCHAR(255) NOT NULL,
   name VARCHAR(255) ,
   created_by BIGINT NOT NULL ,

@@ -8,7 +8,7 @@ import (
 	"github.com/l4khd4r/GuildChat/internal/handler"
 )
 
-func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, friendshipHandler *handler.FriendshipHandler, jwtManager *auth.JWTManager) *gin.Engine {
+func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, friendshipHandler *handler.FriendshipHandler , conversationHandler *handler.ConversationHandler, jwtManager *auth.JWTManager) *gin.Engine {
 	router := gin.Default()
 
 	router.GET("/", func(c *gin.Context) {
@@ -44,5 +44,9 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 
 	protected.DELETE("/friend-request/:id", friendshipHandler.DeleteFriendRequest) // this is removing the row of the pending request
 	protected.DELETE("/friends/:id", friendshipHandler.DeleteFriend)               // this is unfriend someone ( accepted )
+
+	protected.POST("/conversations/:id" , conversationHandler.CreateConversation) // this is for creating a conversation with a friend ( if the conversation already exists it will return the existing one)
+
+
 	return router
 }
