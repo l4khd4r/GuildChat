@@ -8,7 +8,7 @@ import (
 	"github.com/l4khd4r/GuildChat/internal/handler"
 )
 
-func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, friendshipHandler *handler.FriendshipHandler , conversationHandler *handler.ConversationHandler, jwtManager *auth.JWTManager) *gin.Engine {
+func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, friendshipHandler *handler.FriendshipHandler, conversationHandler *handler.ConversationHandler, jwtManager *auth.JWTManager) *gin.Engine {
 	router := gin.Default()
 
 	router.GET("/", func(c *gin.Context) {
@@ -45,8 +45,13 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 	protected.DELETE("/friend-request/:id", friendshipHandler.DeleteFriendRequest) // this is removing the row of the pending request
 	protected.DELETE("/friends/:id", friendshipHandler.DeleteFriend)               // this is unfriend someone ( accepted )
 
-	protected.POST("/conversations/:id" , conversationHandler.CreateConversation) // this is for creating a conversation with a friend ( if the conversation already exists it will return the existing one)
+	protected.POST("/conversations/dm/:id", conversationHandler.CreateDM) // :id is the *other user*; returns the existing DM if there already is one
+	protected.POST("/conversations/room", conversationHandler.CreateRoom) // body: {"name": "..."}; always creates a new room, caller becomes owner
 
+	// protected.GET("/conversations/:id", conversationHandler.GetConversationByID) // :id is the conversation id, not a user id
+	// protected.DELETE("/conversations/:id", conversationHandler.DeleteConversationByID) // :id is the conversation id, not a user id
+	protected.GET("/me/conversations", conversationHandler.ListUserConversations) // every conversation the user is a member of, DMs and rooms alike
+	protected.GET("/conversations/:id", conversationHandler.GetConversation)      // one of them; 404 if it is not the caller's,
 
 	return router
 }

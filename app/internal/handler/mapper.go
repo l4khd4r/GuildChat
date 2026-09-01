@@ -77,3 +77,46 @@ func toFriendRequestResponses(requests []*model.FriendRequest) []dto.FriendReque
 	}
 	return responses
 }
+
+// toConversationResponse converts a freshly created conversation to its wire
+// form. Name stays a pointer: it is null for a DM and set for a room, and
+// `omitempty` drops the key entirely rather than emitting a null.
+func toConversationResponse(conversation *model.Conversation) dto.ConversationResponse {
+	return dto.ConversationResponse{
+		ID:        conversation.ID,
+		Type:      conversation.Type,
+		Name:      conversation.Name,
+		CreatedBy: conversation.CreatedBy,
+		CreatedAt: conversation.CreatedAt,
+		UpdatedAt: conversation.UpdatedAt,
+	}
+}
+
+// toConversationListItem converts one conversation-list row to its wire form.
+// OtherUser stays nil for a room, which the `omitempty` tag turns into an
+// absent key rather than `"other_user": null`.
+func toConversationListItem(entry *model.ConversationListEntry) dto.ConversationListItem {
+	item := dto.ConversationListItem{
+		ID:          entry.Conversation.ID,
+		Type:        entry.Conversation.Type,
+		Name:        entry.Conversation.Name,
+		MemberCount: entry.MemberCount,
+		CreatedAt:   entry.Conversation.CreatedAt,
+		UpdatedAt:   entry.Conversation.UpdatedAt,
+	}
+	if entry.OtherUser != nil {
+		other := toUserResponse(entry.OtherUser)
+		item.OtherUser = &other
+	}
+	return item
+}
+
+// toConversationListItems maps a slice of conversation-list rows, preserving
+// order. Empty rather than nil, for the same reason as toUserResponses.
+func toConversationListItems(entries []*model.ConversationListEntry) []dto.ConversationListItem {
+	items := make([]dto.ConversationListItem, 0, len(entries))
+	for _, entry := range entries {
+		items = append(items, toConversationListItem(entry))
+	}
+	return items
+}
