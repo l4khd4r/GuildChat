@@ -1,0 +1,7 @@
+$kind: http-request
+name: C list members of the room 19
+url: "{{baseUrl}}/conversations/19/members"
+method: GET
+headers:
+  Authorization: Bearer {{tokenC}}
+order: 3905102873119453

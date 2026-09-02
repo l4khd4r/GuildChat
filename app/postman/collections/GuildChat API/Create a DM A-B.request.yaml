@@ -1,0 +1,7 @@
+$kind: http-request
+name: Create a DM A-B
+url: "{{baseUrl}}/conversations/dm/23"
+method: POST
+headers:
+  Authorization: Bearer {{tokenA}}
+order: 4307683734197094

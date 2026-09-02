@@ -57,6 +57,97 @@ func (h *ConversationHandler) CreateDM(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"conversation": toConversationResponse(conversation)})
 }
 
+// ListMembers returns the roster of a conversation the caller is in.
+//
+// This is the endpoint GET /me/conversations deliberately does not inline: the
+// list gives a member_count so that a sidebar row costs the same whether a room
+// has three members or three hundred, and the names are fetched only when a
+// room is actually opened.
+func (h *ConversationHandler) ListMembers(c *gin.Context) {
+	conversationID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid conversation ID"})
+		return
+	}
+
+	userID, ok := auth.GetUserIDFromContext(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	members, err := h.conversationService.ListMembers(c.Request.Context(), userID, conversationID)
+
+	if err != nil {
+		if errors.Is(err, repository.ErrConversationNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "conversation not found"})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list members"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"members": toConversationMemberResponses(members)})
+}
+
+// AddMember adds a user to a room. Owner or admin only.
+//
+// The error mapping is the interesting part, because the status code is itself
+// information:
+//
+//	404  not a member, or no such conversation -- one answer for both, so the
+//	     endpoint cannot be used to discover which conversation ids exist
+//	403  a member, but too junior. Safe to be specific: they already know the
+//	     conversation is there
+//	400  a DM, whose membership is fixed at two
+//	404  the user being added does not exist
+//	409  they are already in
+func (h *ConversationHandler) AddMember(c *gin.Context) {
+	conversationID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid conversation ID"})
+		return
+	}
+
+	var request dto.AddMemberRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "user_id is required"})
+		return
+	}
+
+	userID, ok := auth.GetUserIDFromContext(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	err = h.conversationService.AddMember(c.Request.Context(), userID, conversationID, request.UserID)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrConversationNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "conversation not found"})
+		case errors.Is(err, repository.ErrForbidden):
+			c.JSON(http.StatusForbidden, gin.H{"error": "only an owner or admin can add members"})
+		case errors.Is(err, repository.ErrNotARoom):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "members can only be added to a room"})
+		case errors.Is(err, repository.ErrUserNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		case errors.Is(err, repository.ErrAlreadyMember):
+			c.JSON(http.StatusConflict, gin.H{"error": "user is already a member"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to add member"})
+		}
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 // CreateRoom creates a room owned by the caller.
 //
 // Always a create, never a get-or-create: unlike a DM, a room is identified by
@@ -146,4 +237,52 @@ func (h *ConversationHandler) ListUserConversations(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"conversations": toConversationListItems(conversations)})
+}
+
+
+func (h *ConversationHandler) RemoveMember(c *gin.Context) {
+	conversationID , err := strconv.ParseInt(c.Param("id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid conversation ID"})
+		return
+	}
+
+
+	userID , ok := auth.GetUserIDFromContext(c)
+
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+
+	memberID  , err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid member ID"})
+		return
+	}
+
+	err = h.conversationService.RemoveMember(c.Request.Context(), userID, conversationID, memberID)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, repository.ErrConversationNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "conversation not found"})
+		case errors.Is(err, repository.ErrForbidden):
+			c.JSON(http.StatusForbidden, gin.H{"error": "only an owner or admin can remove members"})
+		case errors.Is(err, repository.ErrNotARoom):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "members can only be removed from a room"})
+		case errors.Is(err, repository.ErrUserNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		case errors.Is(err, repository.ErrNotMember):
+			c.JSON(http.StatusNotFound, gin.H{"error": "user is not a member of this conversation"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove member"})
+		}
+	}
+
+	c.JSON(http.StatusNoContent, gin.H{"message": "Member removed successfully"})
+
 }

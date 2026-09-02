@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/l4khd4r/GuildChat/internal/model"
 )
@@ -80,6 +81,114 @@ func (r *ConversationRepository) CreateConversation(ctx context.Context, convers
 	return conversation, nil
 }
 
+// GetConversationAccess answers, in one round trip, the three things every
+// conversation-scoped endpoint needs before it can act: does this conversation
+// exist, is the caller in it, and as what.
+//
+// Returns ErrConversationNotFound when the conversation does not exist *or* the
+// caller is not a member -- the same answer for both, for the reason spelled
+// out on GetUserConversation: distinguishing them would let anyone probe ids.
+//
+// The conversation's type comes along because permission rules turn on it (a
+// DM's membership is fixed, a room's is not), and fetching it separately would
+// be a second query for one column.
+func (r *ConversationRepository) GetConversationAccess(ctx context.Context, conversationID int64, userID int64) (*model.ConversationAccess, error) {
+
+	query := `
+		SELECT c.type, cm.role
+		FROM conversation_members cm
+		JOIN conversations c ON c.id = cm.conversation_id
+		WHERE cm.conversation_id = $1
+			AND cm.user_id = $2
+	`
+
+	access := &model.ConversationAccess{}
+
+	err := r.db.QueryRow(ctx, query, conversationID, userID).Scan(
+		&access.ConversationType,
+		&access.Role,
+	)
+
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrConversationNotFound
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return access, nil
+}
+
+// ListMembers returns a conversation's roster, oldest member first, so the
+// creator heads the list and the order is stable as people join.
+//
+// It does not check who is asking: the caller must already have established
+// membership (the service does this with GetMemberRole). Keeping the check out
+// of here means the query stays a plain read and the permission lives in one
+// place rather than two.
+func (r *ConversationRepository) ListMembers(ctx context.Context, conversationID int64) ([]*model.ConversationMemberEntry, error) {
+
+	query := `
+		SELECT u.id, u.username, u.email, u.created_at, u.updated_at,
+			cm.role, cm.joined_at
+		FROM conversation_members cm
+		JOIN users u ON u.id = cm.user_id
+		WHERE cm.conversation_id = $1
+		ORDER BY cm.joined_at ASC, u.id ASC
+	`
+
+	rows, err := r.db.Query(ctx, query, conversationID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	members := make([]*model.ConversationMemberEntry, 0)
+
+	for rows.Next() {
+		user := &model.User{}
+		entry := &model.ConversationMemberEntry{User: user}
+
+		err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Email,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&entry.Role,
+			&entry.JoinedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		members = append(members, entry)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return members, nil
+}
+
+// AddMember inserts one membership row, translating the constraints the table
+// already enforces into sentinels the handler can turn into status codes:
+//
+//   - 23505, the (conversation_id, user_id) primary key -> ErrAlreadyMember
+//   - 23503, a foreign key                              -> ErrUserNotFound
+//
+// The table has two foreign keys, but only one of them can realistically fire
+// here: callers reach this having already proved the conversation exists (they
+// had a role in it), so a violation is the user_id.
+//
+// Letting the database answer "does this user exist" is not laziness. A
+// SELECT-then-INSERT would be two round trips *and* still race, since the user
+// could be deleted in between the two. The constraint is checked at write time,
+// so it cannot be outrun.
 func (r *ConversationRepository) AddMember(ctx context.Context, conversationID int64, userID int64, role string) error {
 	query := `
 		INSERT INTO conversation_members (conversation_id, user_id , role)
@@ -87,6 +196,17 @@ func (r *ConversationRepository) AddMember(ctx context.Context, conversationID i
 	`
 
 	_, err := r.db.Exec(ctx, query, conversationID, userID, role)
+
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		switch pgErr.Code {
+		case "23505":
+			return ErrAlreadyMember
+		case "23503":
+			return ErrUserNotFound
+		}
+	}
+
 	return err
 }
 
@@ -315,4 +435,25 @@ func (r *ConversationRepository) GetUserConversation(ctx context.Context, userID
 	}
 
 	return entry, nil
+}
+
+
+
+func (r *ConversationRepository) RemoveMember(ctx context.Context, conversationID int64, userID int64) error {
+	query := `
+		DELETE FROM conversation_members
+		WHERE conversation_id = $1 AND user_id = $2
+	`
+
+	cmdTag , err := r.db.Exec(ctx, query, conversationID, userID)
+
+
+	if err != nil{
+		return err
+	}
+	if cmdTag.RowsAffected() == 0 {
+		return ErrNotMember
+	}
+
+	return nil
 }

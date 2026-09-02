@@ -1,0 +1,8 @@
+$kind: http-request
+name: Create Room
+url: "{{baseUrl}}/conversations/room"
+method: POST
+headers:
+  Authorization: Bearer {{tokenA}}
+  name: MOAHME
+order: 1232796812056990

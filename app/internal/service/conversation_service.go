@@ -44,7 +44,11 @@ func (s *ConversationService) GetOrCreateDM(ctx context.Context, userID1 int64, 
 		return nil, err
 	}
 
-	err = s.conversationRepo.AddMember(ctx, conversation.ID, userID1, model.MemberOwner)
+	// Both sides of a DM are plain members. "Owner" is a room concept: giving
+	// it to whoever happened to open the conversation would mean, once roles
+	// have teeth, that one participant could administer a conversation between
+	// equals.
+	err = s.conversationRepo.AddMember(ctx, conversation.ID, userID1, model.MemberMember)
 	if err != nil {
 		return nil, err
 	}
@@ -93,4 +97,82 @@ func (s *ConversationService) CreateRoom(ctx context.Context, creatorID int64, n
 	}
 
 	return s.conversationRepo.CreateRoom(ctx, name, creatorID)
+}
+
+// ListMembers returns the roster of a conversation the caller belongs to.
+//
+// The GetMemberRole call is the authorisation: it fails with
+// ErrConversationNotFound for a stranger, which is the same answer a
+// non-existent id gives. Any member may read the roster -- knowing who else is
+// in a room you are already in is not privileged.
+func (s *ConversationService) ListMembers(ctx context.Context, userID int64, conversationID int64) ([]*model.ConversationMemberEntry, error) {
+
+	if _, err := s.conversationRepo.GetConversationAccess(ctx, conversationID, userID); err != nil {
+		return nil, err
+	}
+
+	return s.conversationRepo.ListMembers(ctx, conversationID)
+}
+
+// AddMember puts a user into a room.
+//
+// The checks run in this order, and the order is the point -- each one is only
+// safe to ask once the previous has passed:
+//
+//  1. Does the caller have access at all? A stranger cannot get past this, and
+//     the error they get is the same 404 a made-up id gives, so the endpoint
+//     leaks nothing about which conversations exist.
+//  2. Is this a room? A DM's membership is its two participants, for life;
+//     adding a third would turn it into something the DM queries cannot
+//     describe (GetDM and the other-user lookup both assume exactly two).
+//  3. May the caller manage members? Only now that they are known to be *in*
+//     the conversation is it safe to say "your role is too low" -- to anyone
+//     else that sentence would confirm the conversation exists.
+//
+// The new member always joins as a plain member. Promoting to admin is a
+// separate operation with its own rule (only an owner should be able to), and
+// folding it in here would mean this endpoint could hand out its own
+// permission.
+func (s *ConversationService) AddMember(ctx context.Context, callerID int64, conversationID int64, newMemberID int64) error {
+
+	access, err := s.conversationRepo.GetConversationAccess(ctx, conversationID, callerID)
+	if err != nil {
+		return err
+	}
+
+	if access.ConversationType != model.ConversationRoom {
+		return repository.ErrNotARoom
+	}
+
+	if !model.CanManageMembers(access.Role) {
+		return repository.ErrForbidden
+	}
+
+	return s.conversationRepo.AddMember(ctx, conversationID, newMemberID, model.MemberMember)
+}
+
+
+
+func (s *ConversationService) RemoveMember(ctx context.Context, callerID int64, conversationID int64, memberID int64) error {
+	access , err := s.conversationRepo.GetConversationAccess(ctx, conversationID, callerID) // just for not making it the pain in the ass , anyway i will check for the access later
+
+	if err != nil {
+		return err
+	}
+
+	if access.ConversationType != model.ConversationRoom {
+		return repository.ErrNotARoom
+	}
+
+
+	if !model.CanManageMembers(access.Role) {
+		return repository.ErrForbidden
+	}
+
+	err = s.conversationRepo.RemoveMember(ctx, conversationID, memberID)
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -1,0 +1,13 @@
+$kind: http-request
+name: A added B to the room
+url: "{{baseUrl}}/conversations/19/members"
+method: POST
+headers:
+  Authorization: Bearer {{tokenA}}
+body:
+  type: json
+  content: |-
+    {
+        "user_id" : 24
+    }
+order: 2829295111318409

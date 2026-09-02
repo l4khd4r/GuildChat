@@ -48,10 +48,14 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 	protected.POST("/conversations/dm/:id", conversationHandler.CreateDM) // :id is the *other user*; returns the existing DM if there already is one
 	protected.POST("/conversations/room", conversationHandler.CreateRoom) // body: {"name": "..."}; always creates a new room, caller becomes owner
 
-	// protected.GET("/conversations/:id", conversationHandler.GetConversationByID) // :id is the conversation id, not a user id
 	// protected.DELETE("/conversations/:id", conversationHandler.DeleteConversationByID) // :id is the conversation id, not a user id
 	protected.GET("/me/conversations", conversationHandler.ListUserConversations) // every conversation the user is a member of, DMs and rooms alike
-	protected.GET("/conversations/:id", conversationHandler.GetConversation)      // one of them; 404 if it is not the caller's,
+	protected.GET("/conversations/:id", conversationHandler.GetConversation)      // one of them; 404 if it is not the caller's
 
+	// Room membership. Both are scoped to a conversation the caller belongs to,
+	// so someone outside it gets 404 rather than 403 on either.
+	protected.GET("/conversations/:id/members", conversationHandler.ListMembers) // the roster; any member may read it
+	protected.POST("/conversations/:id/members", conversationHandler.AddMember)  // body: {"user_id": N}; owner/admin only, rooms only
+	protected.DELETE("/conversations/:id/members/:user_id", conversationHandler.RemoveMember) // owner/admin only, rooms only
 	return router
 }

@@ -1,16 +1,13 @@
 $kind: http-request
 name: Get Me
 method: GET
-url: '{{baseUrl}}/me'
+url: "{{baseUrl}}/me"
 order: 5100
-description: |-
-  The authenticated user, resolved from the JWT rather than from the URL.
+description: The authenticated user, resolved from the JWT rather than from the URL.
 headers:
-  - key: Authorization
-    value: 'Bearer {{tokenA}}'
+  Authorization: Bearer {{tokenB}}
 scripts:
   - type: afterResponse
-    language: text/javascript
     code: |-
       pm.test('Status code is 200', function () {
           pm.response.to.have.status(200);
@@ -33,3 +30,4 @@ scripts:
       pm.test('Resolves to the token holder, user A', function () {
           pm.expect(pm.response.json().id).to.eql(Number(pm.collectionVariables.get('userAId')));
       });
+    language: text/javascript

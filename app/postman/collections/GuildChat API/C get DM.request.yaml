@@ -1,0 +1,7 @@
+$kind: http-request
+name: C get DM
+url: "{{baseUrl}}/conversations/20"
+method: GET
+headers:
+  Authorization: Bearer {{tokenC}}
+order: 4491303850310719

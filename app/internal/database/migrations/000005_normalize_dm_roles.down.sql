@@ -1,0 +1,8 @@
+-- Deliberately empty.
+--
+-- The up migration collapsed a distinction ('owner' vs 'member' inside a DM)
+-- that carried no information worth keeping, and nothing records which side of
+-- each DM used to hold 'owner'. Reversing it would mean inventing that data.
+--
+-- A down migration must exist for `migrate down` to step past this version, so
+-- this file is a no-op rather than absent.

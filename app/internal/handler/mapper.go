@@ -78,6 +78,25 @@ func toFriendRequestResponses(requests []*model.FriendRequest) []dto.FriendReque
 	return responses
 }
 
+// toConversationMemberResponse converts one roster entry to its wire form.
+func toConversationMemberResponse(member *model.ConversationMemberEntry) dto.ConversationMemberResponse {
+	return dto.ConversationMemberResponse{
+		User:     toUserResponse(member.User),
+		Role:     member.Role,
+		JoinedAt: member.JoinedAt,
+	}
+}
+
+// toConversationMemberResponses maps a roster, preserving order. Empty rather
+// than nil, for the same reason as toUserResponses.
+func toConversationMemberResponses(members []*model.ConversationMemberEntry) []dto.ConversationMemberResponse {
+	responses := make([]dto.ConversationMemberResponse, 0, len(members))
+	for _, member := range members {
+		responses = append(responses, toConversationMemberResponse(member))
+	}
+	return responses
+}
+
 // toConversationResponse converts a freshly created conversation to its wire
 // form. Name stays a pointer: it is null for a DM and set for a room, and
 // `omitempty` drops the key entirely rather than emitting a null.

@@ -1,0 +1,13 @@
+$kind: http-request
+name: A added C to the room
+url: "{{baseUrl}}/conversations/19/members"
+method: POST
+headers:
+  Authorization: Bearer {{tokenA}}
+body:
+  type: json
+  content: |-
+    {
+        "user_id" : 23
+    }
+order: 3224772961046357

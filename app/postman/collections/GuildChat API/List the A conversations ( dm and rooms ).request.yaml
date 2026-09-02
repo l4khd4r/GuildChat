@@ -1,0 +1,7 @@
+$kind: http-request
+name: List the A conversations ( dm and rooms )
+url: "{{baseUrl}}/me/conversations"
+method: GET
+headers:
+  Authorization: Bearer {{tokenA}}
+order: 4493573247489065

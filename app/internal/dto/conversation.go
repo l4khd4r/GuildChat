@@ -39,6 +39,24 @@ type CreateRoomRequest struct {
 	Name string `json:"name" binding:"required,min=1,max=255"`
 }
 
+// AddMemberRequest is the body of POST /conversations/:id/members.
+//
+// Only the user id. The role is not accepted from the client on purpose: a new
+// member always joins as "member", and promotion is a separate operation with
+// its own permission rule. Taking a role here would let an admin grant a role
+// they are not entitled to hand out.
+type AddMemberRequest struct {
+	UserID int64 `json:"user_id" binding:"required"`
+}
+
+// ConversationMemberResponse is one entry of GET /conversations/:id/members:
+// who the member is, their role, and when they joined.
+type ConversationMemberResponse struct {
+	User     UserResponse `json:"user"`
+	Role     string       `json:"role"`
+	JoinedAt time.Time    `json:"joined_at"`
+}
+
 // ConversationResponse is the conversation itself, returned by the endpoints
 // that create one:
 //
