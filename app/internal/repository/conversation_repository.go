@@ -437,18 +437,15 @@ func (r *ConversationRepository) GetUserConversation(ctx context.Context, userID
 	return entry, nil
 }
 
-
-
 func (r *ConversationRepository) RemoveMember(ctx context.Context, conversationID int64, userID int64) error {
 	query := `
 		DELETE FROM conversation_members
 		WHERE conversation_id = $1 AND user_id = $2
 	`
 
-	cmdTag , err := r.db.Exec(ctx, query, conversationID, userID)
+	cmdTag, err := r.db.Exec(ctx, query, conversationID, userID)
 
-
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	if cmdTag.RowsAffected() == 0 {

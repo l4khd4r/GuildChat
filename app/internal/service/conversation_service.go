@@ -151,10 +151,8 @@ func (s *ConversationService) AddMember(ctx context.Context, callerID int64, con
 	return s.conversationRepo.AddMember(ctx, conversationID, newMemberID, model.MemberMember)
 }
 
-
-
 func (s *ConversationService) RemoveMember(ctx context.Context, callerID int64, conversationID int64, memberID int64) error {
-	access , err := s.conversationRepo.GetConversationAccess(ctx, conversationID, callerID) // just for not making it the pain in the ass , anyway i will check for the access later
+	access, err := s.conversationRepo.GetConversationAccess(ctx, conversationID, callerID) // just for not making it the pain in the ass , anyway i will check for the access later
 
 	if err != nil {
 		return err
@@ -163,7 +161,6 @@ func (s *ConversationService) RemoveMember(ctx context.Context, callerID int64, 
 	if access.ConversationType != model.ConversationRoom {
 		return repository.ErrNotARoom
 	}
-
 
 	if !model.CanManageMembers(access.Role) {
 		return repository.ErrForbidden

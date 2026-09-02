@@ -239,25 +239,22 @@ func (h *ConversationHandler) ListUserConversations(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"conversations": toConversationListItems(conversations)})
 }
 
-
 func (h *ConversationHandler) RemoveMember(c *gin.Context) {
-	conversationID , err := strconv.ParseInt(c.Param("id"), 10, 64)
+	conversationID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid conversation ID"})
 		return
 	}
 
-
-	userID , ok := auth.GetUserIDFromContext(c)
+	userID, ok := auth.GetUserIDFromContext(c)
 
 	if !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-
-	memberID  , err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	memberID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid member ID"})

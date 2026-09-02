@@ -54,8 +54,8 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 
 	// Room membership. Both are scoped to a conversation the caller belongs to,
 	// so someone outside it gets 404 rather than 403 on either.
-	protected.GET("/conversations/:id/members", conversationHandler.ListMembers) // the roster; any member may read it
-	protected.POST("/conversations/:id/members", conversationHandler.AddMember)  // body: {"user_id": N}; owner/admin only, rooms only
+	protected.GET("/conversations/:id/members", conversationHandler.ListMembers)              // the roster; any member may read it
+	protected.POST("/conversations/:id/members", conversationHandler.AddMember)               // body: {"user_id": N}; owner/admin only, rooms only
 	protected.DELETE("/conversations/:id/members/:user_id", conversationHandler.RemoveMember) // owner/admin only, rooms only
 	return router
 }

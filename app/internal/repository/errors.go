@@ -32,6 +32,6 @@ var (
 	// membership is fixed at its two participants for life.
 	ErrNotARoom = errors.New("this operation is only valid on a room")
 
-	ErrNotFound = errors.New("not found")
+	ErrNotFound  = errors.New("not found")
 	ErrNotMember = errors.New("not a member of this conversation")
 )
