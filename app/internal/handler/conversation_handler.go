@@ -50,7 +50,14 @@ func (h *ConversationHandler) CreateDM(c *gin.Context) {
 	conversation, err := h.conversationService.GetOrCreateDM(c.Request.Context(), userID1, userID2)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create conversation"})
+		switch {
+		case errors.Is(err, repository.ErrCannotDMYourself):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "cannot create a DM with yourself"})
+		case errors.Is(err, repository.ErrUserNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create conversation"})
+		}
 		return
 	}
 
@@ -278,6 +285,7 @@ func (h *ConversationHandler) RemoveMember(c *gin.Context) {
 		default:
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove member"})
 		}
+		return
 	}
 
 	c.JSON(http.StatusNoContent, gin.H{"message": "Member removed successfully"})

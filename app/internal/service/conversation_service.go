@@ -19,9 +19,23 @@ func NewConversationService(conversationRepo *repository.ConversationRepository)
 	}
 }
 
+// GetOrCreateDM returns the DM between two users, opening it if there is not
+// one yet. Calling it twice with the same pair gives the same conversation:
+// a DM is identified by who is in it, not by an id the caller chose.
+//
+// The error from GetDM decides which half runs, and only ErrConversationNotFound
+// means "create". Every other error is returned as it stands, because a DM that
+// exists but could not be read right now is not a DM that needs creating --
+// treating a timeout or a dropped connection as absence would open a second
+// conversation for a pair that already has one, and neither user would ever see
+// the first again.
+//
+// The creation itself is one repository call. It writes the conversation and
+// both membership rows in a single transaction, which is not something this
+// layer could arrange out of separate calls.
 func (s *ConversationService) GetOrCreateDM(ctx context.Context, userID1 int64, userID2 int64) (*model.Conversation, error) {
 	if userID1 == userID2 {
-		return nil, errors.New(model.ErrorCannotCreateDMWithSelf)
+		return nil, repository.ErrCannotDMYourself
 	}
 
 	conversation, err := s.conversationRepo.GetDM(ctx, userID1, userID2)
@@ -29,36 +43,12 @@ func (s *ConversationService) GetOrCreateDM(ctx context.Context, userID1 int64, 
 	if err == nil {
 		return conversation, nil
 	}
-	// here we create a new DM conversation
 
-	if errors.Is(err, repository.ErrNotFound) {
-		return nil, errors.New(model.ErrorConversationNotFound)
-	}
-
-	conversation, err = s.conversationRepo.CreateConversation(ctx,
-		model.ConversationDM,
-		nil, // no name for DM
-		userID1)
-
-	if err != nil {
+	if !errors.Is(err, repository.ErrConversationNotFound) {
 		return nil, err
 	}
 
-	// Both sides of a DM are plain members. "Owner" is a room concept: giving
-	// it to whoever happened to open the conversation would mean, once roles
-	// have teeth, that one participant could administer a conversation between
-	// equals.
-	err = s.conversationRepo.AddMember(ctx, conversation.ID, userID1, model.MemberMember)
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.conversationRepo.AddMember(ctx, conversation.ID, userID2, model.MemberMember)
-	if err != nil {
-		return nil, err
-	}
-
-	return conversation, nil
+	return s.conversationRepo.CreateDM(ctx, userID1, userID2)
 }
 
 // ListUserConversations returns the caller's conversations, newest activity
@@ -151,9 +141,20 @@ func (s *ConversationService) AddMember(ctx context.Context, callerID int64, con
 	return s.conversationRepo.AddMember(ctx, conversationID, newMemberID, model.MemberMember)
 }
 
+// RemoveMember takes a member out of a room.
+//
+// The rule is model.CanRemove: strictly higher rank wins, so an owner removes
+// admins and members, an admin removes members but not a fellow admin and not
+// the owner, and a member removes nobody. That subsumes CanManageMembers --
+// nothing below admin can outrank a real role -- so the ladder is consulted
+// once, here, rather than twice with two different answers.
+//
+// Leaving is deliberately not handled. CanRemove(role, role) is false, so a
+// caller naming themselves is refused rather than quietly allowed. Self-removal
+// has its own rule (an owner cannot walk out and leave the room ownerless) and
+// belongs in its own endpoint.
 func (s *ConversationService) RemoveMember(ctx context.Context, callerID int64, conversationID int64, memberID int64) error {
-	access, err := s.conversationRepo.GetConversationAccess(ctx, conversationID, callerID) // just for not making it the pain in the ass , anyway i will check for the access later
-
+	access, err := s.conversationRepo.GetConversationAccess(ctx, conversationID, callerID)
 	if err != nil {
 		return err
 	}
@@ -162,14 +163,22 @@ func (s *ConversationService) RemoveMember(ctx context.Context, callerID int64, 
 		return repository.ErrNotARoom
 	}
 
-	if !model.CanManageMembers(access.Role) {
-		return repository.ErrForbidden
+	// The target's role is what the caller's rank is measured against, so it
+	// has to be read, not assumed. A non-member answers ErrConversationNotFound
+	// here, but the caller has already proved the room exists and that they are
+	// in it, so for them it means "that user is not a member" -- there is
+	// nothing left to hide, and the two deserve different status codes.
+	target, err := s.conversationRepo.GetConversationAccess(ctx, conversationID, memberID)
+	if errors.Is(err, repository.ErrConversationNotFound) {
+		return repository.ErrNotMember
 	}
-
-	err = s.conversationRepo.RemoveMember(ctx, conversationID, memberID)
-
 	if err != nil {
 		return err
 	}
-	return nil
+
+	if !model.CanRemove(access.Role, target.Role) {
+		return repository.ErrForbidden
+	}
+
+	return s.conversationRepo.RemoveMember(ctx, conversationID, memberID)
 }

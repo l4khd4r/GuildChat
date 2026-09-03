@@ -44,6 +44,9 @@ func (r *ConversationRepository) GetDM(ctx context.Context, userID1 int64, userI
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrConversationNotFound
+		}
 		return nil, err
 	}
 
@@ -208,6 +211,92 @@ func (r *ConversationRepository) AddMember(ctx context.Context, conversationID i
 	}
 
 	return err
+}
+
+// CreateDM creates a DM between two users: the conversation and both
+// membership rows, as one unit.
+//
+// It exists because those three writes have to share a fate. Issued separately
+// they each commit on their own, and a failure on the last one -- the other
+// user deleted in the meantime, a cancelled request -- leaves a conversation
+// with one member or none. Nothing can reach such a row afterwards: every read
+// joins the caller through conversation_members, so neither user sees it and no
+// endpoint can delete it. GetDM does not find it either, since it requires both
+// membership rows, so the next attempt by the same pair creates another one
+// beside it.
+//
+// The sequence lives here rather than in the service because a transaction is
+// held on one connection, and the repository is what holds the pool. A service
+// calling three repository methods gets three separate commits, whatever order
+// it puts them in.
+//
+// Both member rows go in a single INSERT: one round trip, and no window between
+// them. Both sides are plain members -- "owner" is a room concept, and handing
+// it to whoever opened the conversation would let one participant administer a
+// conversation between equals.
+func (r *ConversationRepository) CreateDM(ctx context.Context, userID1 int64, userID2 int64) (*model.Conversation, error) {
+
+	tx, err := r.db.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// No-op once the transaction has been committed; this is the rollback for
+	// every path that returns early below.
+	defer tx.Rollback(ctx)
+
+	conversation := &model.Conversation{}
+
+	err = tx.QueryRow(
+		ctx,
+		`
+			INSERT INTO conversations (type, name, created_by)
+			VALUES ($1, NULL, $2)
+			RETURNING id, type, name, created_by, created_at, updated_at
+		`,
+		model.ConversationDM,
+		userID1,
+	).Scan(
+		&conversation.ID,
+		&conversation.Type,
+		&conversation.Name,
+		&conversation.CreatedBy,
+		&conversation.CreatedAt,
+		&conversation.UpdatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = tx.Exec(
+		ctx,
+		`
+			INSERT INTO conversation_members (conversation_id, user_id, role)
+			VALUES ($1, $2, $4), ($1, $3, $4)
+		`,
+		conversation.ID,
+		userID1,
+		userID2,
+		model.MemberMember,
+	)
+
+	// A 23503 here is the other user's foreign key: they existed when the
+	// caller asked for the DM and do not now. The whole transaction rolls back,
+	// so there is no half-built conversation left behind to report.
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23503" {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+
+	return conversation, nil
 }
 
 // CreateRoom inserts a room and the creator's owner row as one unit.

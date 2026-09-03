@@ -28,6 +28,11 @@ var (
 	// nothing left to hide from them.
 	ErrForbidden = errors.New("insufficient permissions for this conversation")
 
+	// ErrCannotDMYourself is a caller asking to open a DM with themselves. A DM
+	// is identified by its two participants, so a self-DM is not a conversation
+	// with one member, it is a pair that does not exist.
+	ErrCannotDMYourself = errors.New("cannot create a DM with yourself")
+
 	// ErrNotARoom guards the operations that only make sense on a room. A DM's
 	// membership is fixed at its two participants for life.
 	ErrNotARoom = errors.New("this operation is only valid on a room")

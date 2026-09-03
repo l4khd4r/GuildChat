@@ -2,11 +2,6 @@ package model
 
 import "time"
 
-const (
-	ErrorConversationNotFound   = "conversation not found"
-	ErrorCannotCreateDMWithSelf = "cannot create a DM with yourself"
-)
-
 type Conversation struct {
 	ID        int64     `json:"id"`
 	Type      string    `json:"type"`
