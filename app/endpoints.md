@@ -306,6 +306,122 @@ lingers here.
 
 ---
 
+## Messages — protected
+
+A message belongs to a conversation, not to a room or a DM. Both are rows in
+`conversations`, so every endpoint here works on either with no branching and
+no separate DM route.
+
+Membership is the whole permission model. Any member may read and any member
+may write, whatever their role. A caller who is not a member gets `404` on both
+endpoints — the same answer a conversation id that never existed gives, so
+neither endpoint can be used to discover which conversations exist. There is no
+`403` anywhere in this section.
+
+`MessageResponse` is the shape of one message, returned by both endpoints and,
+later, pushed over the socket unchanged:
+
+```json
+{
+  "id": 118,
+  "conversation_id": 19,
+  "sender": { "id": 2, "username": "rogue", "email": "rogue@example.com",
+              "created_at": "...", "updated_at": "..." },
+  "body": "First message in the hall.",
+  "client_msg_id": "6f1d...",
+  "created_at": "2026-09-05T10:00:00Z"
+}
+```
+
+The sender travels with the message rather than as a bare `sender_id`, so
+drawing a page of names costs no extra requests. `client_msg_id` and
+`edited_at` are omitted entirely when unset, rather than sent as `null`.
+
+### `POST /conversations/:id/messages`
+
+Post to a conversation the caller belongs to. `:id` is the **conversation** id.
+
+```json
+{ "body": "First message in the hall.", "client_msg_id": "optional-uuid" }
+```
+
+| Code | Meaning |
+| --- | --- |
+| `201` | stored, returns `{"message": MessageResponse}` |
+| `400` | `:id` is not a number, body missing / blank / over 4000 chars, or `client_msg_id` is not a uuid |
+| `401` | missing or invalid token |
+| `404` | no such conversation, or the caller is not a member |
+| `500` | anything else |
+
+A body of only whitespace is a `400`, not a stored message: `required` in the
+binding is satisfied by spaces, so it is trimmed and rejected in the service.
+
+`client_msg_id` is optional and makes the request idempotent. Sending the same
+one twice returns the message that already exists instead of writing a second
+row, so a client retrying after a dropped connection is safe to do so. It also
+lets the sender's own UI match an optimistically rendered message to the
+confirmed one, which the server id cannot do because the optimistic copy does
+not have one yet. Uniqueness is per `(conversation, sender, client_msg_id)`, and
+NULLs do not collide, so any number of messages without one coexist.
+
+Posting also stamps the conversation's `updated_at` in the same transaction,
+which is what moves it to the top of `GET /me/conversations`.
+
+### `GET /conversations/:id/messages`
+
+One page of a conversation the caller belongs to, **newest first**.
+
+| Query | Default | Meaning |
+| --- | --- | --- |
+| `before` | none | return messages older than this id; omit for the newest page |
+| `limit` | `50` | page size, `1`–`100` |
+
+| Code | Meaning |
+| --- | --- |
+| `200` | a page, possibly empty |
+| `400` | `:id` is not a number, `limit` outside `1`–`100`, or `before` is not a positive integer |
+| `401` | missing or invalid token |
+| `404` | no such conversation, or the caller is not a member |
+| `500` | anything else |
+
+```json
+{
+  "messages": [ MessageResponse, ... ],
+  "next_cursor": 116,
+  "has_more": true
+}
+```
+
+Paging is **keyset**, not offset. `next_cursor` is the id of the oldest message
+on the page just returned; send it back as `before` to get the page above it,
+and repeat until `has_more` is `false`, at which point `next_cursor` is absent
+from the response entirely.
+
+This is why there is no `page` parameter. An offset makes the database walk and
+discard every row before the page, so reading far into a long conversation gets
+steadily slower, and it double-counts under concurrency: a message arriving
+mid-scroll shifts every row down one and the client sees a duplicate. A cursor
+is a seek into `idx_messages_conversation_id` plus a scan of exactly `limit`
+rows, and a new message has a larger id, so it lands on the end already read
+past and disturbs nothing.
+
+`has_more` costs no extra query. The page is fetched one row larger than asked
+for, and the surplus row is dropped before the response is built, so a `COUNT`
+over the conversation is never needed.
+
+A conversation with no messages is `200` with `"messages": []` and
+`has_more: false`, never `null` and never `404`.
+
+Order is newest first because that is how the index stores them, and because a
+client opening a chat wants the newest page. Reverse the array for display.
+The same order suits a client catching up after a disconnect.
+
+A malformed `before` or `limit` is a `400` rather than a fall back to the
+defaults. A client that sent a cursor and silently received the newest page
+instead would page forever without ever seeing an error.
+
+---
+
 ## Testing
 
 `postman/collections/GuildChat API` holds a runnable collection covering every
