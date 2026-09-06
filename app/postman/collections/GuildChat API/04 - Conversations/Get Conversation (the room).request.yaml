@@ -1,0 +1,18 @@
+$kind: http-request
+order: 6000
+method: GET
+url: '{{baseUrl}}/conversations/{{roomId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("the room, named and with one member", () => {
+        const c = pm.response.json().conversation;
+        pm.expect(c.type).to.eql("room");
+        pm.expect(c.name).to.eql("Guild Hall " + pm.collectionVariables.get("runId"));
+        pm.expect(c.member_count).to.eql(1);
+      });

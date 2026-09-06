@@ -1,0 +1,12 @@
+$kind: http-request
+order: 14000
+method: DELETE
+url: '{{baseUrl}}/conversations/{{w4RoomId}}/members/{{w4OwnerId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w4MemberToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 403", () => pm.response.to.have.status(403));

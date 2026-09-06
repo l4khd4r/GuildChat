@@ -1,0 +1,27 @@
+$kind: http-request
+order: 1000
+method: POST
+url: '{{baseUrl}}/users'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "w1user_{{runId}}",
+      "email": "w1user_{{runId}}@guild.test",
+      "password": "ChangeMe123!"
+    }
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      // A fresh id, so folder 08 can be run on its own without colliding
+      // with accounts left behind by an earlier run.
+      pm.collectionVariables.set("runId", Date.now().toString().slice(-7));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.collectionVariables.set("w1UserId", pm.response.json().id);

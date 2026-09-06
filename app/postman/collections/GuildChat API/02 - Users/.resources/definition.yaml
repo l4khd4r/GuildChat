@@ -1,0 +1,3 @@
+$kind: collection
+name: '02 - Users'
+description: 'Profile reads and writes. Delete Me runs against a disposable account so the run can continue.'

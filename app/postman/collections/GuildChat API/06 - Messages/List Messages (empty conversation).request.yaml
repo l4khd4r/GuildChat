@@ -1,0 +1,20 @@
+$kind: http-request
+order: 11000
+method: GET
+url: '{{baseUrl}}/conversations/{{emptyRoomId}}/messages'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      const page = pm.response.json();
+      pm.test("an empty array, never null", () => {
+        pm.expect(page.messages).to.be.an("array").that.is.empty;
+      });
+      pm.test("nothing to page to", () => {
+        pm.expect(page.has_more).to.be.false;
+        pm.expect(page.next_cursor).to.be.undefined;
+      });

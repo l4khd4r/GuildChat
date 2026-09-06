@@ -1,0 +1,18 @@
+$kind: http-request
+order: 1000
+method: GET
+url: '{{baseUrl}}/conversations/{{roomId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenC}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 404", () => pm.response.to.have.status(404));
+      pm.test("carries an error message", () => {
+        pm.expect(pm.response.json().error).to.be.a("string").and.to.not.be.empty;
+      });
+      pm.test("explains the failure", () => {
+        pm.expect(pm.response.json().error).to.include("conversation not found");
+      });

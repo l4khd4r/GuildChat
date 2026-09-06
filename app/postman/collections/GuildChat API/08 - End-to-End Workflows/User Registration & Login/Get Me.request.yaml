@@ -1,0 +1,17 @@
+$kind: http-request
+order: 3000
+method: GET
+url: '{{baseUrl}}/me'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w1Token}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("identity matches the registration", () => {
+        const u = pm.response.json();
+        pm.expect(u.id).to.eql(Number(pm.collectionVariables.get("w1UserId")));
+        pm.expect(u.username).to.eql("w1user_" + pm.collectionVariables.get("runId"));
+      });

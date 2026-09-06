@@ -1,0 +1,16 @@
+$kind: http-request
+order: 5000
+method: GET
+url: '{{baseUrl}}/me/friend-requests'
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("it is no longer pending", () => {
+        const ids = pm.response.json().map(r => r.id);
+        pm.expect(ids).to.not.include(Number(pm.collectionVariables.get("friendRequestId")));
+      });

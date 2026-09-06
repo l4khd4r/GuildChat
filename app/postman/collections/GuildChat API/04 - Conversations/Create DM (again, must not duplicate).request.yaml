@@ -1,0 +1,15 @@
+$kind: http-request
+order: 2000
+method: POST
+url: '{{baseUrl}}/conversations/dm/{{otherUserId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.test("returns the conversation that already exists", () => {
+        pm.expect(pm.response.json().conversation.id).to.eql(Number(pm.collectionVariables.get("conversationId")));
+      });

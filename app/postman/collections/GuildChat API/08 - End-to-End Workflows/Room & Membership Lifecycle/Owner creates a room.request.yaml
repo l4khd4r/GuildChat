@@ -1,0 +1,26 @@
+$kind: http-request
+order: 7000
+method: POST
+url: '{{baseUrl}}/conversations/room'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{w4OwnerToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Workflow Room {{runId}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      const c = pm.response.json().conversation;
+      pm.collectionVariables.set("w4RoomId", c.id);
+      pm.test("a named room owned by the creator", () => {
+        pm.expect(c.type).to.eql("room");
+        pm.expect(c.created_by).to.eql(Number(pm.collectionVariables.get("w4OwnerId")));
+      });

@@ -1,0 +1,3 @@
+$kind: collection
+name: '05 - Conversation Members'
+description: 'Room membership. C is deliberately never added, so the folders below have an outsider to test against.'

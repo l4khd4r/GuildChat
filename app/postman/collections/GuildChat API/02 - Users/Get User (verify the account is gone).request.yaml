@@ -1,0 +1,12 @@
+$kind: http-request
+order: 7000
+method: GET
+url: '{{baseUrl}}/users/{{disposableUserId}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 404", () => pm.response.to.have.status(404));
+      pm.test("reports the user is not found", () => {
+        pm.expect(pm.response.json().error).to.include("not found");
+      });

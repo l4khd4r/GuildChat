@@ -1,0 +1,12 @@
+$kind: http-request
+order: 1000
+method: GET
+url: '{{baseUrl}}/'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("welcome message", () => {
+        pm.expect(pm.response.json().message).to.eql("Welcome to My World!");
+      });

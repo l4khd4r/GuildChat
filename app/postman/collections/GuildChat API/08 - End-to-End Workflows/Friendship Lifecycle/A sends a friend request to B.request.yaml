@@ -1,0 +1,19 @@
+$kind: http-request
+order: 5000
+method: POST
+url: '{{baseUrl}}/users/{{w2BId}}/friend-request'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w2AToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      const f = pm.response.json();
+      pm.collectionVariables.set("w2ReqId", f.id);
+      pm.test("pending, in the right direction", () => {
+        pm.expect(f.status).to.eql("pending");
+        pm.expect(f.requester_id).to.eql(Number(pm.collectionVariables.get("w2AId")));
+        pm.expect(f.receiver_id).to.eql(Number(pm.collectionVariables.get("w2BId")));
+      });

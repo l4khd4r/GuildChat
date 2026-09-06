@@ -1,0 +1,18 @@
+$kind: http-request
+order: 9000
+method: DELETE
+url: '{{baseUrl}}/friend-request/abc'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 400", () => pm.response.to.have.status(400));
+      pm.test("carries an error message", () => {
+        pm.expect(pm.response.json().error).to.be.a("string").and.to.not.be.empty;
+      });
+      pm.test("explains the failure", () => {
+        pm.expect(pm.response.json().error).to.include("invalid friendship ID");
+      });

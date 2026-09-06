@@ -1,0 +1,16 @@
+$kind: http-request
+order: 9000
+method: GET
+url: '{{baseUrl}}/me/friends'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("B is gone from the list", () => {
+        const ids = pm.response.json().map(u => u.id);
+        pm.expect(ids).to.not.include(Number(pm.collectionVariables.get("otherUserId")));
+      });

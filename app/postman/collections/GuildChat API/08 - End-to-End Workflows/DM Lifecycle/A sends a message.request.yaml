@@ -1,0 +1,20 @@
+$kind: http-request
+order: 9000
+method: POST
+url: '{{baseUrl}}/conversations/{{w3DmId}}/messages'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{w3AToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "body": "first"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));

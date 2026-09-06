@@ -1,0 +1,3 @@
+$kind: collection
+name: 'Room & Membership Lifecycle'
+description: 'A room from creation to a member joining, speaking, being refused admin actions, and being removed.'

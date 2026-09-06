@@ -1,0 +1,23 @@
+$kind: http-request
+order: 5000
+method: POST
+url: '{{baseUrl}}/conversations/{{conversationId}}/messages'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "body": "Same endpoint, no branching for a DM."
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.test("posted into the DM", () => {
+        pm.expect(pm.response.json().message.conversation_id).to.eql(Number(pm.collectionVariables.get("conversationId")));
+      });

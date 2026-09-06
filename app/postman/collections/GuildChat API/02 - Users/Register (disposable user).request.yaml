@@ -1,0 +1,21 @@
+$kind: http-request
+order: 4000
+method: POST
+url: '{{baseUrl}}/users'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "dave_{{runId}}",
+      "email": "dave_{{runId}}@guild.test",
+      "password": "ChangeMe123!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.collectionVariables.set("disposableUserId", pm.response.json().id);

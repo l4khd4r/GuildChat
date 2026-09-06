@@ -1,0 +1,20 @@
+$kind: http-request
+order: 17000
+method: POST
+url: '{{baseUrl}}/conversations/{{w4RoomId}}/messages'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{w4MemberToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "body": "still here?"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 404", () => pm.response.to.have.status(404));

@@ -1,0 +1,23 @@
+$kind: http-request
+order: 11000
+method: POST
+url: '{{baseUrl}}/conversations/{{w3DmId}}/messages'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{w3BToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "body": "reply"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.test("the reply is attributed to B", () => {
+        pm.expect(pm.response.json().message.sender.id).to.eql(Number(pm.collectionVariables.get("w3BId")));
+      });

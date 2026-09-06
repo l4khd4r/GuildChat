@@ -1,0 +1,15 @@
+$kind: http-request
+order: 4000
+method: GET
+url: '{{baseUrl}}/conversations/{{roomId}}/members'
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("a plain member sees the same roster", () => {
+        pm.expect(pm.response.json().members).to.have.lengthOf(2);
+      });

@@ -1,0 +1,19 @@
+$kind: http-request
+order: 5000
+method: POST
+url: '{{baseUrl}}/conversations/dm/{{w3BId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w3AToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      const c = pm.response.json().conversation;
+      pm.collectionVariables.set("w3DmId", c.id);
+      pm.test("a nameless DM created by A", () => {
+        pm.expect(c.type).to.eql("dm");
+        pm.expect(c.name).to.be.undefined;
+        pm.expect(c.created_by).to.eql(Number(pm.collectionVariables.get("w3AId")));
+      });

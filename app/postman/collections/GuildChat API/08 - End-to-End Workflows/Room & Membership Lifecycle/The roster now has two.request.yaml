@@ -1,0 +1,19 @@
+$kind: http-request
+order: 10000
+method: GET
+url: '{{baseUrl}}/conversations/{{w4RoomId}}/members'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w4OwnerToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("owner first, then the new member", () => {
+        const m = pm.response.json().members;
+        pm.expect(m).to.have.lengthOf(2);
+        pm.expect(m[0].role).to.eql("owner");
+        const added = m.find(x => x.user.id === Number(pm.collectionVariables.get("w4MemberId")));
+        pm.expect(added.role).to.eql("member");
+      });

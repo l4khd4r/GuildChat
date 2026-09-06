@@ -1,0 +1,21 @@
+$kind: http-request
+order: 4000
+method: POST
+url: '{{baseUrl}}/friend-request/{{friendRequestId}}/accept'
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("response is a friendship", () => {
+        const f = pm.response.json();
+        pm.expect(f).to.have.all.keys("id", "requester_id", "receiver_id", "status", "created_at", "updated_at");
+      });
+      pm.test("the same row is now accepted", () => {
+        const f = pm.response.json();
+        pm.expect(f.id).to.eql(Number(pm.collectionVariables.get("friendRequestId")));
+        pm.expect(f.status).to.eql("accepted");
+      });

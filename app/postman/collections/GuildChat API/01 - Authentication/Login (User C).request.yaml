@@ -1,0 +1,26 @@
+$kind: http-request
+order: 6000
+method: POST
+url: '{{baseUrl}}/auth/login'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "carol_{{runId}}@guild.test",
+      "password": "ChangeMe123!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      const j = pm.response.json();
+      pm.test("returns a token and the user", () => {
+        pm.expect(j.token).to.be.a("string").and.to.have.length.above(20);
+        pm.expect(j.user).to.have.all.keys("id", "username", "email");
+        pm.expect(j.user.id).to.eql(Number(pm.collectionVariables.get("thirdUserId")));
+      });
+      pm.collectionVariables.set("tokenC", j.token);

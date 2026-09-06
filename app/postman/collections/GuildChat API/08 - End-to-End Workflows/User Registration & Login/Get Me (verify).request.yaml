@@ -1,0 +1,17 @@
+$kind: http-request
+order: 5000
+method: GET
+url: '{{baseUrl}}/me'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w1Token}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("the change persisted", () => {
+        const u = pm.response.json();
+        pm.expect(u.username).to.eql("w1renamed_" + pm.collectionVariables.get("runId"));
+        pm.expect(u.id).to.eql(Number(pm.collectionVariables.get("w1UserId")));
+      });

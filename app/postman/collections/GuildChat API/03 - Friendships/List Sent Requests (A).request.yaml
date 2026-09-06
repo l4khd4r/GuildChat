@@ -1,0 +1,17 @@
+$kind: http-request
+order: 3000
+method: GET
+url: '{{baseUrl}}/me/friend-requests/sent'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("the embedded user is the receiver", () => {
+        const row = pm.response.json().find(r => r.id === Number(pm.collectionVariables.get("friendRequestId")));
+        pm.expect(row, "the request is in the list").to.not.be.undefined;
+        pm.expect(row.user.id).to.eql(Number(pm.collectionVariables.get("otherUserId")));
+      });

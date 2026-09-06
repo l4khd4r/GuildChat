@@ -1,0 +1,24 @@
+$kind: http-request
+order: 5000
+method: POST
+url: '{{baseUrl}}/auth/login'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "w5b_{{runId}}@guild.test",
+      "password": "ChangeMe123!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      const j = pm.response.json();
+      pm.test("the token belongs to the right user", () => {
+        pm.expect(j.user.id).to.eql(Number(pm.collectionVariables.get("w5BId")));
+      });
+      pm.collectionVariables.set("w5BToken", j.token);

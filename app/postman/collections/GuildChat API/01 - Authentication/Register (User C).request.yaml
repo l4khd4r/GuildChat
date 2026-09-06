@@ -1,0 +1,31 @@
+$kind: http-request
+order: 3000
+method: POST
+url: '{{baseUrl}}/users'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "carol_{{runId}}",
+      "email": "carol_{{runId}}@guild.test",
+      "password": "ChangeMe123!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.test("response is a user object", () => {
+        const u = pm.response.json();
+        pm.expect(u).to.have.all.keys("id", "username", "email", "created_at", "updated_at");
+        pm.expect(u.id).to.be.a("number");
+      });
+      pm.test("no credential fields leak", () => {
+        const raw = pm.response.text();
+        pm.expect(raw).to.not.include("password");
+        pm.expect(raw).to.not.include("PasswordHash");
+      });
+      pm.collectionVariables.set("thirdUserId", pm.response.json().id);

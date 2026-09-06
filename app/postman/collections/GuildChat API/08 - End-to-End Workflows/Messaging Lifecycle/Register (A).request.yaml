@@ -1,0 +1,21 @@
+$kind: http-request
+order: 1000
+method: POST
+url: '{{baseUrl}}/users'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "w5a_{{runId}}",
+      "email": "w5a_{{runId}}@guild.test",
+      "password": "ChangeMe123!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.collectionVariables.set("w5AId", pm.response.json().id);

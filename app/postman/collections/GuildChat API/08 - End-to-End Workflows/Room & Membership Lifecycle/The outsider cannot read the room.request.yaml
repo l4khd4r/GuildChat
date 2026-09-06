@@ -1,0 +1,12 @@
+$kind: http-request
+order: 12000
+method: GET
+url: '{{baseUrl}}/conversations/{{w4RoomId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w4OutsiderToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 404", () => pm.response.to.have.status(404));

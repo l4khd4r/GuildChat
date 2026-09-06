@@ -1,0 +1,19 @@
+$kind: http-request
+order: 1000
+method: GET
+url: '{{baseUrl}}/conversations/{{roomId}}/members'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("the creator is the sole owner", () => {
+        const m = pm.response.json().members;
+        pm.expect(m).to.have.lengthOf(1);
+        pm.expect(m[0]).to.have.all.keys("user", "role", "joined_at");
+        pm.expect(m[0].user.id).to.eql(Number(pm.collectionVariables.get("userId")));
+        pm.expect(m[0].role).to.eql("owner");
+      });

@@ -1,0 +1,21 @@
+$kind: http-request
+order: 8000
+method: POST
+url: '{{baseUrl}}/conversations/room'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{w5AToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "name": "Messaging Room {{runId}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.collectionVariables.set("w5RoomId", pm.response.json().conversation.id);

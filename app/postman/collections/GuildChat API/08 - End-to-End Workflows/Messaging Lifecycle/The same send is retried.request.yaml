@@ -1,0 +1,24 @@
+$kind: http-request
+order: 11000
+method: POST
+url: '{{baseUrl}}/conversations/{{w5DmId}}/messages'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{w5AToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "body": "retryable",
+      "client_msg_id": "{{w5ClientMsgId}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.test("no duplicate was written", () => {
+        pm.expect(pm.response.json().message.id).to.eql(Number(pm.collectionVariables.get("w5IdemId")));
+      });

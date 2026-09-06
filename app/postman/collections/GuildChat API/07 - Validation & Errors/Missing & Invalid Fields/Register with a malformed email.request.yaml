@@ -1,0 +1,26 @@
+$kind: http-request
+order: 3000
+method: POST
+url: '{{baseUrl}}/users'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "bad_{{runId}}",
+      "email": "not-an-email",
+      "password": "ChangeMe123!"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 400", () => pm.response.to.have.status(400));
+      pm.test("carries an error message", () => {
+        pm.expect(pm.response.json().error).to.be.a("string").and.to.not.be.empty;
+      });
+      pm.test("explains the failure", () => {
+        pm.expect(pm.response.json().error).to.include("Email");
+      });

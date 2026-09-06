@@ -1,0 +1,3 @@
+$kind: collection
+name: '06 - Messages'
+description: 'Sending and reading messages. Reads are keyset paginated: a page carries next_cursor, and the next request sends it back as before. The three messages written here are what the paging assertions count.'

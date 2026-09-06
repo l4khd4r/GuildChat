@@ -1,0 +1,21 @@
+$kind: http-request
+order: 9000
+method: GET
+url: '{{baseUrl}}/conversations/{{roomId}}/messages'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      const page = pm.response.json();
+      pm.test("no limit means the whole short conversation fits on one page", () => {
+        pm.expect(page.messages).to.be.an("array").with.lengthOf(3);
+        pm.expect(page.has_more).to.be.false;
+      });
+      pm.test("the retried message was never stored twice", () => {
+        const ids = page.messages.map((m) => m.id);
+        pm.expect(new Set(ids).size).to.eql(3);
+      });

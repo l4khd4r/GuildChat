@@ -1,0 +1,15 @@
+$kind: http-request
+order: 5000
+method: DELETE
+url: '{{baseUrl}}/conversations/{{roomId}}/members/{{memberId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 204", () => pm.response.to.have.status(204));
+      pm.test("no content is returned", () => {
+        pm.expect(pm.response.text()).to.be.empty;
+      });

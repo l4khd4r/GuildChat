@@ -1,57 +1,67 @@
 $kind: collection
 name: GuildChat API
 description: |-
-  API collection for the GuildChat service (Go + Gin).
+  Every endpoint served by internal/router/router.go, and nothing else.
 
-  Covers every route in `internal/router/router.go`, including the failure
-  cases (400 / 401 / 404 / 409). See `endpoints.md` for the written reference.
+  HOW TO RUN
+  Set baseUrl, then run the whole collection in order. Folder 01 registers three
+  accounts and stores their tokens, and every id after that is captured from a
+  response. Nothing needs to be pasted by hand, and the run repeats against the
+  same database because each run stamps a fresh runId into the usernames.
 
-  ## Running it
+  THE THREE FIXTURE ACCOUNTS
+    A  owns the room and drives most flows          -> authToken, userId
+    B  friend, DM partner, plain room member        -> tokenB,    otherUserId
+    C  never joins anything, drives the 403s/404s   -> tokenC,    thirdUserId
 
-  Start the server, point `baseUrl` at it, and run the whole collection top to
-  bottom. Requests are ordered so the run tells a story:
+  STRUCTURE
+    00-06  one folder per resource, in dependency order, each request documented
+    07     failure paths, grouped by the kind of failure
+    08     self-contained workflows; any one of these folders runs on its own
 
-    1. Root seeds `runId`, a timestamp suffix that keeps usernames and emails
-       unique, so the collection can be re-run against the same database.
-    2. Three throwaway users are registered and logged in. Their tokens land in
-       `tokenA` / `tokenB` / `tokenC`.
-    3. The account endpoints are exercised as A.
-    4. A asks B, B accepts - checking the inbox, the outbox, and that both
-       users then see each other in /me/friends.
-    5. A asks C, C rejects, then A asks again - which must succeed, because
-       rejecting deletes the row rather than marking it.
-    6. A asks C once more and cancels it themselves, checking that a third
-       party cannot, and that the request leaves both the outbox and the inbox.
-       Then A asks again and C removes it from their side, since cancelling is
-       open to both parties.
-    7. B unfriends A, after checking that a pending row cannot be unfriended
-       and that a third party cannot break up someone else's friendship. The
-       friendship disappears from both users' /me/friends.
-    8. All three accounts are deleted.
+  WHAT THE TESTS ASSERT
+  Status codes, response shape, that ids and embedded users are the right ones,
+  that error bodies explain the right failure, and that mutations actually
+  changed state when read back. Not just 200.
 
-  Individual requests will fail on their own: most read a collection variable
-  set by an earlier one. Run the collection, not a single request.
-
-  Nothing here is seeded manually. Every id, token and email used by a later
-  request is captured from an earlier response.
+  KNOWN BACKEND BUG PINNED HERE
+  "Send a friend request to an unknown user" asserts 500, which is what the
+  backend currently returns. Every comparable endpoint answers 404. See that
+  request's description.
 variables:
-  baseUrl: http://localhost:8080
   runId: ""
-  userAId: ""
-  userBId: ""
-  userCId: ""
-  userAUsername: ""
-  userBUsername: ""
-  userCUsername: ""
-  userAEmail: ""
-  tokenA: ""
+  userId: ""
+  otherUserId: ""
+  memberId: ""
+  thirdUserId: ""
+  authToken: ""
   tokenB: ""
   tokenC: ""
-  friendshipAB: ""
-  friendshipAC: ""
-  friendshipAC2: ""
-  friendshipAC3: ""
-  friendshipAC4: ""
-  friendshipAC5: ""
-auth:
-  type: noauth
+  disposableUserId: ""
+  disposableToken: ""
+  friendRequestId: ""
+  rejectedRequestId: ""
+  cancelledRequestId: ""
+  conversationId: ""
+  roomId: ""
+  messageId: ""
+  clientMsgId: ""
+  idempotentMessageId: ""
+  messageCursor: ""
+  emptyRoomId: ""
+  w3AId: ""
+  w3BId: ""
+  w3AToken: ""
+  w3BToken: ""
+  w3DmId: ""
+  w5AId: ""
+  w5BId: ""
+  w5XId: ""
+  w5AToken: ""
+  w5BToken: ""
+  w5XToken: ""
+  w5DmId: ""
+  w5RoomId: ""
+  w5MsgId: ""
+  w5ClientMsgId: ""
+  w5IdemId: ""

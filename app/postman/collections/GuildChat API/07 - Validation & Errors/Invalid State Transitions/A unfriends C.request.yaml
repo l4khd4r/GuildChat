@@ -1,0 +1,12 @@
+$kind: http-request
+order: 7000
+method: DELETE
+url: '{{baseUrl}}/friends/{{stateRequestId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));

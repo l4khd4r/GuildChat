@@ -1,0 +1,3 @@
+$kind: collection
+name: 'User Registration & Login'
+description: 'Register, log in, read, update, verify, delete, and prove the account is gone.'

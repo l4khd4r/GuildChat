@@ -1,0 +1,39 @@
+$kind: http-request
+order: 1000
+method: POST
+url: '{{baseUrl}}/users'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "alice_{{runId}}",
+      "email": "alice_{{runId}}@guild.test",
+      "password": "ChangeMe123!"
+    }
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      // One id per run so the collection is repeatable against the same database.
+      pm.collectionVariables.set("runId", Date.now().toString().slice(-7));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.test("response is a user object", () => {
+        const u = pm.response.json();
+        pm.expect(u).to.have.all.keys("id", "username", "email", "created_at", "updated_at");
+        pm.expect(u.id).to.be.a("number");
+      });
+      pm.test("no credential fields leak", () => {
+        const raw = pm.response.text();
+        pm.expect(raw).to.not.include("password");
+        pm.expect(raw).to.not.include("PasswordHash");
+      });
+      pm.collectionVariables.set("userId", pm.response.json().id);
+      pm.test("echoes the submitted username", () => {
+        pm.expect(pm.response.json().username).to.eql("alice_" + pm.collectionVariables.get("runId"));
+      });

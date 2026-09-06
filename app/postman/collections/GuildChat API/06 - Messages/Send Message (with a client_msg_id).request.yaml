@@ -1,0 +1,31 @@
+$kind: http-request
+order: 3000
+method: POST
+url: '{{baseUrl}}/conversations/{{roomId}}/messages'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "body": "Sent once, maybe twice.",
+      "client_msg_id": "{{clientMsgId}}"
+    }
+scripts:
+  - type: beforeRequest
+    language: text/javascript
+    code: |-
+      // One uuid, shared with the retry below.
+      pm.collectionVariables.set("clientMsgId", pm.variables.replaceIn("{{$guid}}"));
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      const m = pm.response.json().message;
+      pm.collectionVariables.set("idempotentMessageId", m.id);
+      pm.test("the client id is echoed back", () => {
+        pm.expect(m.client_msg_id).to.eql(pm.collectionVariables.get("clientMsgId"));
+      });

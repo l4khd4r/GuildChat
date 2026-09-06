@@ -1,0 +1,13 @@
+$kind: http-request
+order: 7000
+method: POST
+url: '{{baseUrl}}/conversations/dm/{{w5BId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w5AToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.collectionVariables.set("w5DmId", pm.response.json().conversation.id);

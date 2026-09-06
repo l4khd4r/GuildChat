@@ -1,0 +1,17 @@
+$kind: http-request
+order: 16000
+method: GET
+url: '{{baseUrl}}/conversations/{{w4RoomId}}/members'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w4OwnerToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("the member is gone", () => {
+        const m = pm.response.json().members;
+        pm.expect(m).to.have.lengthOf(1);
+        pm.expect(m.map(x => x.user.id)).to.not.include(Number(pm.collectionVariables.get("w4MemberId")));
+      });

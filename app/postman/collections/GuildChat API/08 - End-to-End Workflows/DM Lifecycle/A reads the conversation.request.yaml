@@ -1,0 +1,17 @@
+$kind: http-request
+order: 7000
+method: GET
+url: '{{baseUrl}}/conversations/{{w3DmId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w3AToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("B is the other side", () => {
+        const c = pm.response.json().conversation;
+        pm.expect(c.other_user.id).to.eql(Number(pm.collectionVariables.get("w3BId")));
+        pm.expect(c.member_count).to.eql(2);
+      });

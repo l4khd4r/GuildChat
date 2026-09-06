@@ -1,0 +1,3 @@
+$kind: collection
+name: '07 - Validation & Errors'
+description: 'Failure paths for every protected endpoint. Each asserts the status AND the error text, so a handler that starts returning the right code with the wrong reason still fails.'

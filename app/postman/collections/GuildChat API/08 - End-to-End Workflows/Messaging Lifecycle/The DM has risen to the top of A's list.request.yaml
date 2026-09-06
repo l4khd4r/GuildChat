@@ -1,0 +1,16 @@
+$kind: http-request
+order: 13000
+method: GET
+url: '{{baseUrl}}/me/conversations'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w5AToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("most recent activity first", () => {
+        const list = pm.response.json().conversations;
+        pm.expect(list[0].id).to.eql(Number(pm.collectionVariables.get("w5DmId")));
+      });

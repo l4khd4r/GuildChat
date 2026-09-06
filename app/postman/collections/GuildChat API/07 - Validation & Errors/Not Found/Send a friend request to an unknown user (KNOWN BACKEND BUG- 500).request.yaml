@@ -1,0 +1,19 @@
+$kind: http-request
+name: 'Send a friend request to an unknown user (KNOWN BACKEND BUG: 500)'
+order: 10000
+method: POST
+url: '{{baseUrl}}/users/2147483000/friend-request'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 500", () => pm.response.to.have.status(500));
+      pm.test("carries an error message", () => {
+        pm.expect(pm.response.json().error).to.be.a("string").and.to.not.be.empty;
+      });
+      pm.test("DOCUMENTS A BUG: this should be 404, not 500", () => {
+        pm.expect(pm.response.code, "change this assertion to 404 once the FK violation is mapped").to.eql(500);
+      });

@@ -1,0 +1,32 @@
+$kind: http-request
+order: 7000
+method: GET
+url: '{{baseUrl}}/conversations/{{roomId}}/messages?limit=2'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      const page = pm.response.json();
+      pm.collectionVariables.set("messageCursor", page.next_cursor);
+      pm.test("the page is the size that was asked for", () => {
+        pm.expect(page.messages).to.be.an("array").with.lengthOf(2);
+      });
+      pm.test("newest first", () => {
+        pm.expect(page.messages[0].id).to.eql(Number(pm.collectionVariables.get("idempotentMessageId")));
+        pm.expect(page.messages[0].id).to.be.above(page.messages[1].id);
+      });
+      pm.test("every message carries its sender", () => {
+        page.messages.forEach((m) => {
+          pm.expect(m).to.include.keys("id", "conversation_id", "sender", "body", "created_at");
+          pm.expect(m.sender).to.have.all.keys("id", "username", "email", "created_at", "updated_at");
+          pm.expect(m.conversation_id).to.eql(Number(pm.collectionVariables.get("roomId")));
+        });
+      });
+      pm.test("a third message is waiting, and the cursor points at it", () => {
+        pm.expect(page.has_more).to.be.true;
+        pm.expect(page.next_cursor).to.eql(page.messages[1].id);
+      });

@@ -1,0 +1,22 @@
+$kind: http-request
+order: 3000
+method: GET
+url: '{{baseUrl}}/conversations/{{roomId}}/members'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      const m = pm.response.json().members;
+      pm.test("B joined as a plain member", () => {
+        pm.expect(m).to.have.lengthOf(2);
+        const b = m.find(x => x.user.id === Number(pm.collectionVariables.get("memberId")));
+        pm.expect(b, "B is on the roster").to.not.be.undefined;
+        pm.expect(b.role).to.eql("member");
+      });
+      pm.test("the owner still leads the roster", () => {
+        pm.expect(m[0].role).to.eql("owner");
+      });

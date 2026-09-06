@@ -1,0 +1,22 @@
+$kind: http-request
+order: 8000
+method: GET
+url: '{{baseUrl}}/conversations/{{roomId}}/messages?before={{messageCursor}}&limit=2'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      const page = pm.response.json();
+      pm.test("the last message, and nothing from the previous page", () => {
+        pm.expect(page.messages).to.be.an("array").with.lengthOf(1);
+        pm.expect(page.messages[0].id).to.eql(Number(pm.collectionVariables.get("messageId")));
+        pm.expect(page.messages[0].id).to.be.below(Number(pm.collectionVariables.get("messageCursor")));
+      });
+      pm.test("the cursor is dropped at the top of the conversation", () => {
+        pm.expect(page.has_more).to.be.false;
+        pm.expect(page.next_cursor, "absent, not null").to.be.undefined;
+      });

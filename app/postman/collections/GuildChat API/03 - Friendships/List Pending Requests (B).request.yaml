@@ -1,0 +1,19 @@
+$kind: http-request
+order: 2000
+method: GET
+url: '{{baseUrl}}/me/friend-requests'
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenB}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      const list = pm.response.json();
+      pm.test("A's request is waiting for B", () => {
+        const row = list.find(r => r.id === Number(pm.collectionVariables.get("friendRequestId")));
+        pm.expect(row, "the request is in the list").to.not.be.undefined;
+        pm.expect(row.status).to.eql("pending");
+        pm.expect(row.user.id).to.eql(Number(pm.collectionVariables.get("userId")));
+      });

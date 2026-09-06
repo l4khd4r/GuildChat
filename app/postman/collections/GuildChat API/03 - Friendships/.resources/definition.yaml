@@ -1,0 +1,3 @@
+$kind: collection
+name: '03 - Friendships'
+description: 'The whole friendship lifecycle: send, list, accept, verify, unfriend, reject and cancel.'

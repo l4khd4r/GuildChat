@@ -1,0 +1,15 @@
+$kind: http-request
+order: 3000
+method: GET
+url: '{{baseUrl}}/me'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("the new username was stored", () => {
+        pm.expect(pm.response.json().username).to.eql("alicia_" + pm.collectionVariables.get("runId"));
+      });

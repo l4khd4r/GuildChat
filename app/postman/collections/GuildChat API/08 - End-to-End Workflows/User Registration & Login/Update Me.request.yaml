@@ -1,0 +1,24 @@
+$kind: http-request
+order: 4000
+method: PUT
+url: '{{baseUrl}}/me'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{w1Token}}'
+body:
+  type: json
+  content: |-
+    {
+      "username": "w1renamed_{{runId}}",
+      "email": "w1user_{{runId}}@guild.test"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("the profile was replaced", () => {
+        pm.expect(pm.response.json().username).to.eql("w1renamed_" + pm.collectionVariables.get("runId"));
+      });

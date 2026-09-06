@@ -1,0 +1,15 @@
+$kind: http-request
+order: 6000
+method: GET
+url: '{{baseUrl}}/me/conversations'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("the conversation just posted to is first", () => {
+        pm.expect(pm.response.json().conversations[0].id).to.eql(Number(pm.collectionVariables.get("conversationId")));
+      });

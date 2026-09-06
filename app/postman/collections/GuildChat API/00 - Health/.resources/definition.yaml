@@ -1,0 +1,3 @@
+$kind: collection
+name: '00 - Health'
+description: 'Unauthenticated liveness checks.'

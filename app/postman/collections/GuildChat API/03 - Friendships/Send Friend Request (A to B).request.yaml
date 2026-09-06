@@ -1,0 +1,23 @@
+$kind: http-request
+order: 1000
+method: POST
+url: '{{baseUrl}}/users/{{otherUserId}}/friend-request'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.test("response is a friendship", () => {
+        const f = pm.response.json();
+        pm.expect(f).to.have.all.keys("id", "requester_id", "receiver_id", "status", "created_at", "updated_at");
+      });
+      const f = pm.response.json();
+      pm.collectionVariables.set("friendRequestId", f.id);
+      pm.test("pending, from A to B", () => {
+        pm.expect(f.requester_id).to.eql(Number(pm.collectionVariables.get("userId")));
+        pm.expect(f.receiver_id).to.eql(Number(pm.collectionVariables.get("otherUserId")));
+        pm.expect(f.status).to.eql("pending");
+      });

@@ -1,0 +1,3 @@
+$kind: collection
+name: 'DM Lifecycle'
+description: 'Opening a DM, proving it is idempotent, and exchanging messages from both sides.'

@@ -1,0 +1,3 @@
+$kind: collection
+name: '08 - End-to-End Workflows'
+description: 'Self-contained sequences. Each registers its own users, so any one of these folders can be run on its own without the folders above it.'

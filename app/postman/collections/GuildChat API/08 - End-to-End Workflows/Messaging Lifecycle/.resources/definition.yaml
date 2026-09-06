@@ -1,0 +1,3 @@
+$kind: collection
+name: 'Messaging Lifecycle'
+description: 'Sending, retry safety, and the conversation list reordering itself as messages land.'

@@ -1,0 +1,13 @@
+$kind: http-request
+order: 4000
+method: POST
+url: '{{baseUrl}}/friend-request/{{stateRequestId}}/accept'
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenC}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("accepted", () => pm.expect(pm.response.json().status).to.eql("accepted"));

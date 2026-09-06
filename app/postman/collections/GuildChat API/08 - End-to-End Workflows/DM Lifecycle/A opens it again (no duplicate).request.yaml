@@ -1,0 +1,15 @@
+$kind: http-request
+order: 6000
+method: POST
+url: '{{baseUrl}}/conversations/dm/{{w3BId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w3AToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      pm.test("the same conversation comes back", () => {
+        pm.expect(pm.response.json().conversation.id).to.eql(Number(pm.collectionVariables.get("w3DmId")));
+      });

@@ -1,0 +1,17 @@
+$kind: http-request
+order: 11000
+method: POST
+url: '{{baseUrl}}/friend-request/{{rejectedRequestId}}/reject'
+headers:
+  - key: Authorization
+    value: 'Bearer {{tokenC}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("reports the request as rejected", () => {
+        const f = pm.response.json();
+        pm.expect(f.id).to.eql(Number(pm.collectionVariables.get("rejectedRequestId")));
+        pm.expect(f.status).to.eql("rejected");
+      });

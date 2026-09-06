@@ -1,0 +1,27 @@
+$kind: http-request
+order: 9000
+method: POST
+url: '{{baseUrl}}/conversations/{{w5DmId}}/messages'
+headers:
+  - key: Content-Type
+    value: application/json
+  - key: Authorization
+    value: 'Bearer {{w5AToken}}'
+body:
+  type: json
+  content: |-
+    {
+      "body": "hello there"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      const m = pm.response.json().message;
+      pm.collectionVariables.set("w5MsgId", m.id);
+      pm.test("stored and attributed", () => {
+        pm.expect(m.sender.id).to.eql(Number(pm.collectionVariables.get("w5AId")));
+        pm.expect(m.conversation_id).to.eql(Number(pm.collectionVariables.get("w5DmId")));
+        pm.expect(m.body).to.eql("hello there");
+      });

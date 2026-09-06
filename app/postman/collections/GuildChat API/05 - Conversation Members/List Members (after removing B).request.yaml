@@ -1,0 +1,17 @@
+$kind: http-request
+order: 6000
+method: GET
+url: '{{baseUrl}}/conversations/{{roomId}}/members'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("B is gone", () => {
+        const m = pm.response.json().members;
+        pm.expect(m).to.have.lengthOf(1);
+        pm.expect(m.map(x => x.user.id)).to.not.include(Number(pm.collectionVariables.get("memberId")));
+      });

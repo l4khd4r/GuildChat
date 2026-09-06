@@ -1,0 +1,17 @@
+$kind: http-request
+order: 10000
+method: GET
+url: '{{baseUrl}}/me/conversations'
+headers:
+  - key: Authorization
+    value: 'Bearer {{w3BToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("the DM shows A as the other side", () => {
+        const c = pm.response.json().conversations.find(x => x.id === Number(pm.collectionVariables.get("w3DmId")));
+        pm.expect(c).to.not.be.undefined;
+        pm.expect(c.other_user.id).to.eql(Number(pm.collectionVariables.get("w3AId")));
+      });

@@ -1,0 +1,27 @@
+$kind: http-request
+order: 7000
+method: GET
+url: '{{baseUrl}}/me'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      pm.test("response is a user object", () => {
+        const u = pm.response.json();
+        pm.expect(u).to.have.all.keys("id", "username", "email", "created_at", "updated_at");
+        pm.expect(u.id).to.be.a("number");
+      });
+      pm.test("no credential fields leak", () => {
+        const raw = pm.response.text();
+        pm.expect(raw).to.not.include("password");
+        pm.expect(raw).to.not.include("PasswordHash");
+      });
+      pm.test("is the authenticated user", () => {
+        const u = pm.response.json();
+        pm.expect(u.id).to.eql(Number(pm.collectionVariables.get("userId")));
+        pm.expect(u.email).to.eql("alice_" + pm.collectionVariables.get("runId") + "@guild.test");
+      });

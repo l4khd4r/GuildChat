@@ -1,0 +1,29 @@
+$kind: http-request
+order: 4000
+method: GET
+url: '{{baseUrl}}/me/conversations'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 200", () => pm.response.to.have.status(200));
+      const list = pm.response.json().conversations;
+      const dm = list.find(c => c.id === Number(pm.collectionVariables.get("conversationId")));
+      const room = list.find(c => c.id === Number(pm.collectionVariables.get("roomId")));
+      pm.test("both conversations are listed", () => {
+        pm.expect(dm, "the DM").to.not.be.undefined;
+        pm.expect(room, "the room").to.not.be.undefined;
+      });
+      pm.test("a DM row carries the other participant", () => {
+        pm.expect(dm.type).to.eql("dm");
+        pm.expect(dm.other_user.id).to.eql(Number(pm.collectionVariables.get("otherUserId")));
+        pm.expect(dm.member_count).to.eql(2);
+      });
+      pm.test("a room row carries a name and no other user", () => {
+        pm.expect(room.type).to.eql("room");
+        pm.expect(room.other_user, "rooms have no other_user").to.be.undefined;
+        pm.expect(room.member_count).to.eql(1);
+      });

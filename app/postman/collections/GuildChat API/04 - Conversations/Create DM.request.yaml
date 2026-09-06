@@ -1,0 +1,20 @@
+$kind: http-request
+order: 1000
+method: POST
+url: '{{baseUrl}}/conversations/dm/{{otherUserId}}'
+headers:
+  - key: Authorization
+    value: 'Bearer {{authToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("status is 201", () => pm.response.to.have.status(201));
+      const c = pm.response.json().conversation;
+      pm.collectionVariables.set("conversationId", c.id);
+      pm.test("is a DM created by A", () => {
+      pm.expect(c).to.include.keys("id", "type", "created_by", "created_at", "updated_at");
+        pm.expect(c.type).to.eql("dm");
+        pm.expect(c.created_by).to.eql(Number(pm.collectionVariables.get("userId")));
+        pm.expect(c.name, "a DM has no name").to.be.undefined;
+      });
