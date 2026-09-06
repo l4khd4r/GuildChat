@@ -8,7 +8,7 @@ import (
 	"github.com/l4khd4r/GuildChat/internal/handler"
 )
 
-func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, friendshipHandler *handler.FriendshipHandler, conversationHandler *handler.ConversationHandler, jwtManager *auth.JWTManager) *gin.Engine {
+func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, friendshipHandler *handler.FriendshipHandler, conversationHandler *handler.ConversationHandler, messageHandler *handler.MessageHandler, jwtManager *auth.JWTManager) *gin.Engine {
 	router := gin.Default()
 
 	router.GET("/", func(c *gin.Context) {
@@ -57,5 +57,9 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 	protected.GET("/conversations/:id/members", conversationHandler.ListMembers)              // the roster; any member may read it
 	protected.POST("/conversations/:id/members", conversationHandler.AddMember)               // body: {"user_id": N}; owner/admin only, rooms only
 	protected.DELETE("/conversations/:id/members/:user_id", conversationHandler.RemoveMember) // owner/admin only, rooms only
+
+	protected.POST("/conversations/:id/messages", messageHandler.SendMessage) // body: {"body": "...", "client_msg_id": "..."}; any member may send a message
+	protected.GET("/conversations/:id/messages", messageHandler.ListMessages) // ?before=<id>&limit=<n> , newest first , any member may read
+
 	return router
 }

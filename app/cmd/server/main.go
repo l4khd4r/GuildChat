@@ -62,7 +62,12 @@ func main() {
 	conversationRepo := repository.NewConversationRepository(db)
 	conversationService := service.NewConversationService(conversationRepo)
 	conversationHandler := handler.NewConversationHandler(conversationService)
-	r := router.New(userHandler, authHandler, friendshipHandler, conversationHandler, jwtManager)
+
+	messageRepo := repository.NewMessageRepository(db)
+	messageService := service.NewMessageService(conversationRepo, messageRepo)
+	messageHandler := handler.NewMessageHandler(messageService)
+
+	r := router.New(userHandler, authHandler, friendshipHandler, conversationHandler, messageHandler, jwtManager)
 	log.Println("Server is running on port : " + cfg.Port)
 
 	if err := r.Run(":" + cfg.Port); err != nil {

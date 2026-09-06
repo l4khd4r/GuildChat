@@ -39,4 +39,6 @@ var (
 
 	ErrNotFound  = errors.New("not found")
 	ErrNotMember = errors.New("not a member of this conversation")
+
+	ErrMessageBodyRequired = errors.New("message body is required")
 )

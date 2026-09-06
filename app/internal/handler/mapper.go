@@ -139,3 +139,38 @@ func toConversationListItems(entries []*model.ConversationListEntry) []dto.Conve
 	}
 	return items
 }
+
+// toMessageResponse converts a message and its sender to their wire form.
+func toMessageResponse(entry *model.MessageEntry) dto.MessageResponse {
+	return dto.MessageResponse{
+		ID:             entry.Message.ID,
+		ConversationID: entry.Message.ConversationID,
+		Sender:         toUserResponse(entry.Sender),
+		Body:           entry.Message.Body,
+		ClientMsgID:    entry.Message.ClientMsgID,
+		CreatedAt:      entry.Message.CreatedAt,
+		EditedAt:       entry.Message.EditedAt,
+	}
+}
+
+// toMessageResponses maps a page of messages, preserving order. Empty rather
+// than nil for the same reason as toUserResponses.
+
+func toMessageResponses(entries []*model.MessageEntry) []dto.MessageResponse {
+	responses := make([]dto.MessageResponse, 0, len(entries))
+
+	for _, entry := range entries {
+		responses = append(responses, toMessageResponse(entry))
+	}
+	return responses
+}
+
+// toListMessagesResponse converts a page and its cursor to their wire form
+
+func toListMessagesResponse(page *model.MessagePage) dto.ListMessagesResponse {
+	return dto.ListMessagesResponse{
+		Messages:   toMessageResponses(page.Messages),
+		NextCursor: page.NextCursor,
+		HasMore:    page.HasMore,
+	}
+}
