@@ -1,0 +1,22 @@
+
+-- Every read of messages is the same shape: one conversation, newest first,
+-- fifty at a time. Nothing in the table serves that yet.
+--
+-- The primary key is on id alone, which cannot narrow to a conversation. The
+-- unique constraint CAN, since conversation_id is its leftmost column, but it
+-- orders what it finds by (sender_id, client_msg_id). So a page of messages
+-- means fetching every message in the conversation and sorting the lot, and
+-- that cost grows with the length of the conversation rather than with the
+-- size of the page.
+--
+-- Ordering the index by id instead makes both pagination queries a seek plus a
+-- short scan: the newest fifty are the first fifty entries, and "older than id
+-- N" starts where N sits. The catch-up query a reconnecting client will need,
+-- "newer than id N", reads the same index the other way.
+--
+-- This is a separate migration because 000008 has already been applied. The
+-- migrate tool records version 8 as done and will not re-run it, so editing
+-- that file would change nothing on any database that has seen it. For the
+-- same reason, do not also add this line to 000008: a fresh database would
+-- then try to create the index twice and fail.
+CREATE INDEX idx_messages_conversation_id ON messages (conversation_id, id DESC);
