@@ -61,5 +61,6 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 	protected.POST("/conversations/:id/messages", messageHandler.SendMessage) // body: {"body": "...", "client_msg_id": "..."}; any member may send a message
 	protected.GET("/conversations/:id/messages", messageHandler.ListMessages) // ?before=<id>&limit=<n> , newest first , any member may read
 
+	// we will neeed to implement the kick , ban ( for join is already done) , but i needed the kick and some of them we , timeout and ban are not yet implemented
 	return router
 }
