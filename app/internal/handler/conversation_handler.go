@@ -152,7 +152,7 @@ func (h *ConversationHandler) AddMember(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.Status(http.StatusNoContent , gin.H{"message": "Member added successfully"})
 }
 
 // CreateRoom creates a room owned by the caller.
