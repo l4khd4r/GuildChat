@@ -63,8 +63,5 @@ func New(userHandler *handler.UserHandler, authHandler *handler.AuthHandler, fri
 
 	// we will neeed to implement the kick , ban ( for join is already done) , but i needed the kick and some of them we , timeout and ban are not yet implemented
 
-
-	
-	
 	return router
 }
